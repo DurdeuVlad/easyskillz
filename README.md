@@ -107,7 +107,7 @@ easyskillz is designed to minimize git surface area and eliminate developer fric
 | `.easyskillz/skills/` | ✓ yes | shared source of truth for all skills |
 | `.easyskillz/easyskillz.json` | ✓ yes | shared tool list so teammates wire the same tools |
 | `.claude/skills/`, `.cursor/skills/`, etc. | ✗ no | machine-local symlinks, meaningless to others |
-| `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, etc. | ✗ no | personal tool config, differs per developer |
+| `CLAUDE.md`, `AGENTS.md`, `.cursor/rules`, etc. | ✗ no | personal tool config, differs per developer |
 
 Each developer uses whichever AI tools they prefer. Their local config, symlinks, and instruction files never touch git. Only the skills themselves — the shared knowledge — are committed.
 
@@ -140,9 +140,8 @@ No merge conflicts on tool config. No PRs blocked because someone uses a differe
 |------|-------------|-----------------|
 | Claude Code | `.claude/skills/` | `CLAUDE.md` |
 | Codex | `.codex/skills/` | `AGENTS.md` |
-| Cursor | `.cursor/skills/` | `AGENTS.md` |
-| Windsurf | `.windsurf/skills/` | `AGENTS.md` |
-| Windsurf Workflows | `.windsurf/workflows/` | `AGENTS.md` |
+| Cursor | `.cursor/skills/` | `.cursor/rules` |
+| Windsurf | `.windsurf/skills/` | `.windsurf/rules` |
 | GitHub Copilot | `.github/skills/` | `.github/copilot-instructions.md` |
 | Gemini CLI | `.gemini/skills/` | `GEMINI.md` |
 
