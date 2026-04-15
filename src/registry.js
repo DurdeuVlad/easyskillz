@@ -29,7 +29,7 @@ const REGISTRY = {
     name: 'Windsurf',
     skillsDir: '.windsurf/skills',
     instructionFile: 'AGENTS.md',
-    detectionMarker: '.windsurf',      // tool-specific dir, not shared AGENTS.md
+    detectionMarker: '.windsurf/rules', // rules dir created by Windsurf IDE; easyskillz never writes here
   },
   'windsurf-workflows': {
     id: 'windsurf-workflows',
