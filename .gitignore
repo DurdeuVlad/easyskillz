@@ -12,8 +12,7 @@ Thumbs.db
 .github/skills/
 .gemini/skills/
 
-
-# root instruction files — machine/tool-specific, not part of this repo
+# easyskillz — instruction files are machine/tool-specific
 CLAUDE.md
 AGENTS.md
 GEMINI.md
