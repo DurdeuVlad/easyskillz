@@ -111,6 +111,49 @@ test('wireSkill with symlink strategy wires or stubs without throwing', () => {
   }
 });
 
+// ── wireSkill (workflow type) ─────────────────────────────────────────────────
+
+test('wireSkill workflow type creates flat .md file not directory', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'my-workflow');
+    const entry = {
+      id: 'windsurf-workflows',
+      name: 'Windsurf Workflows',
+      skillsDir: '.windsurf/workflows',
+      instructionFile: 'AGENTS.md',
+      type: 'workflows',
+    };
+    const result = wirer.wireSkill('my-workflow', entry, cwd, 'stub');
+    assert.equal(result, 'wired');
+    // should be a flat file, not a directory
+    const target = path.join(cwd, '.windsurf', 'workflows', 'my-workflow.md');
+    assert.ok(fs.existsSync(target), 'my-workflow.md should exist');
+    assert.ok(fs.statSync(target).isFile(), 'should be a file not a directory');
+    // directory variant must NOT exist
+    const targetDir = path.join(cwd, '.windsurf', 'workflows', 'my-workflow');
+    assert.ok(!fs.existsSync(targetDir), 'directory variant must not exist');
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('wireSkill workflow type is idempotent', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'my-workflow');
+    const entry = {
+      id: 'windsurf-workflows', name: 'Windsurf Workflows',
+      skillsDir: '.windsurf/workflows', instructionFile: 'AGENTS.md', type: 'workflows',
+    };
+    wirer.wireSkill('my-workflow', entry, cwd, 'stub');
+    const result = wirer.wireSkill('my-workflow', entry, cwd, 'stub');
+    assert.equal(result, 'already');
+  } finally {
+    cleanup(cwd);
+  }
+});
+
 // ── wireAllSkills ─────────────────────────────────────────────────────────────
 
 test('wireAllSkills wires all skill directories', () => {

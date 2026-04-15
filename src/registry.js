@@ -32,6 +32,7 @@ const REGISTRY = {
     name: 'Windsurf Workflows',
     skillsDir: '.windsurf/workflows',
     instructionFile: 'AGENTS.md',
+    type: 'workflows', // flat .md files, not skill folders
   },
   copilot: {
     id: 'copilot',

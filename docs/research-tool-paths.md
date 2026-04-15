@@ -66,32 +66,31 @@ Docs quote:
 
 ## Impact on registry.js
 
-### Current state (after recent fix attempt)
-
-```js
-cursor:   { skillsDir: '.cursor/skills',   instructionFile: '.cursorrules'   }  // .cursorrules is deprecated
-windsurf: { skillsDir: '.windsurf/skills', instructionFile: '.windsurfrules' }  // .windsurfrules is deprecated
-```
-
-### Recommended state
+### Implemented state
 
 ```js
 cursor: {
-  skillsDir:    '.cursor/skills',
-  instructionFile: 'AGENTS.md',       // flat, writable, supported, not deprecated
-}
-
+  skillsDir:       '.cursor/skills',
+  instructionFile: 'AGENTS.md',   // flat, writable, cross-tool standard
+},
 windsurf: {
-  skillsDir:    '.windsurf/skills',
-  workflowsDir: '.windsurf/workflows', // new field — slash commands
-  instructionFile: 'AGENTS.md',       // flat, writable, supported, not deprecated
-}
+  skillsDir:       '.windsurf/skills',
+  instructionFile: 'AGENTS.md',
+},
+'windsurf-workflows': {
+  id:              'windsurf-workflows',
+  skillsDir:       '.windsurf/workflows',
+  instructionFile: 'AGENTS.md',
+  type:            'workflows',   // wirer uses flat .md files, not skill folders
+},
 ```
 
-### Open questions before implementing
-1. `AGENTS.md` is already used by Codex. Two tools sharing the same `instructionFile` is fine for `appendInstruction` (idempotent), but means one tool's sync will satisfy the other — is that desirable or confusing?
-2. Should `workflowsDir` be a first-class field on all registry entries (null for tools that don't have it), or only on Windsurf?
-3. Cursor has `.cursor/commands/` — add `commandsDir` as well, or defer to v2?
+Codex, Cursor, Windsurf, and Windsurf Workflows all share `AGENTS.md`. `appendInstruction` is idempotent — the line is written once regardless of how many tools list the same file.
+
+Workflows use `type: 'workflows'` — `wireSkill` symlinks `SKILL.md` directly as `skill-name.md` (flat file) instead of symlinking the directory.
+
+### Deferred to v2
+- Cursor `.cursor/commands/` — `commandsDir` field for slash commands
 
 ---
 

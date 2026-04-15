@@ -11,9 +11,9 @@ async function sync({ cwd, json, isTTY }) {
 
   if (toolIds.length === 0) {
     out('No AI tools detected in this directory.');
-    out('Make sure your tool has a config file here (e.g. CLAUDE.md, AGENTS.md, .cursor/rules).');
+    out('Make sure your tool has a config file here (e.g. CLAUDE.md, AGENTS.md, .cursorrules).');
     out('Or add a tool manually: easyskillz register <tool>');
-    out('Supported tools: claude, codex, cursor, windsurf, copilot, gemini');
+    out('Supported tools: claude, codex, cursor, windsurf, windsurf-workflows, copilot, gemini');
     if (json) process.stdout.write(JSON.stringify({ ok: false, tools: [], strategy: null }) + '\n');
     process.exit(1);
     return;
