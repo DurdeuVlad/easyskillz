@@ -6,6 +6,20 @@ Format: `## [version] — YYYY-MM-DD` · sections: `Added`, `Fixed`, `Changed`, 
 
 ---
 
+## [0.1.2] — 2026-04-15
+
+### Fixed
+- Detection false-positives: Codex, Cursor, and Windsurf all share `AGENTS.md` — detectors now use tool-specific auto-created artifacts (`detectionMarker` field) instead of the shared instruction file
+- `CLAUDE.md` and `GEMINI.md` replaced as detection markers with `.claude/settings.json` and `.gemini/settings.json` (auto-created by the tools, not user-created)
+- Windsurf workflows wired as flat `.md` files instead of directories (correct format for `/slash` commands)
+- Cursor and Windsurf `instructionFile` corrected to `AGENTS.md` (native cross-tool standard)
+
+### Added
+- `windsurf-workflows` as a separate registry entry — Windsurf Skills (auto-invoked by Cascade) and Windsurf Workflows (manual `/slash` commands) are now distinct tools
+- `detectionMarker` field in registry — decouples detection logic from instruction file path
+
+---
+
 ## [0.1.1] — 2026-04-15
 
 ### Fixed
