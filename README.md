@@ -96,7 +96,20 @@ You see exactly what will happen before it happens. One confirmation. Done.
 
 ---
 
-## The Collaboration Story
+## Built for Teams
+
+easyskillz is designed to minimize git surface area and eliminate developer friction in large teams.
+
+**What gets committed — and what doesn't:**
+
+| Path | Committed | Why |
+|------|-----------|-----|
+| `.easyskillz/skills/` | ✓ yes | shared source of truth for all skills |
+| `.easyskillz/easyskillz.json` | ✓ yes | shared tool list so teammates wire the same tools |
+| `.claude/skills/`, `.cursor/skills/`, etc. | ✗ no | machine-local symlinks, meaningless to others |
+| `CLAUDE.md`, `AGENTS.md`, `.cursor/rules`, etc. | ✗ no | personal tool config, differs per developer |
+
+Each developer uses whichever AI tools they prefer. Their local config, symlinks, and instruction files never touch git. Only the skills themselves — the shared knowledge — are committed.
 
 ```bash
 # Day 1 — you set it up
@@ -110,14 +123,14 @@ git push
 ```
 
 ```bash
-# Teammate clones
+# Teammate clones — uses Cursor, you use Claude, no conflict
 git clone <repo>
-easyskillz sync   ← detects their tools, re-wires all skills automatically
+easyskillz sync   ← detects their tools, wires all skills automatically
 
 ✓ Done. 2 tool(s) wired via symlink.
 ```
 
-Symlinks are machine-local. Skills are shared. Each dev's tool config stays on their own machine — no merge conflicts.
+No merge conflicts on tool config. No PRs blocked because someone uses a different editor. The skill content is the only thing that matters — and that's exactly what gets shared.
 
 ---
 
