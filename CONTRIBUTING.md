@@ -13,9 +13,12 @@ mytool: {
   id: 'mytool',
   name: 'My Tool',
   skillsDir: '.mytool/skills',
-  instructionFile: '.mytool/instructions.md',
+  instructionFile: '.mytool/instructions.md', // file easyskillz appends the hint line to
+  detectionMarker: '.mytool',                 // tool-specific path used ONLY for detection
 },
 ```
+
+`detectionMarker` must be a path that is **unique to this tool** — never a file shared with other tools (e.g. `AGENTS.md` is shared by Codex, Cursor, and Windsurf and must not be used as a detection marker).
 
 ### Step 2 — Create a detector
 
@@ -32,14 +35,14 @@ module.exports = function detect(cwd) {
   const entry = registry.mytool;
   const found =
     fs.existsSync(path.join(cwd, entry.skillsDir)) ||
-    fs.existsSync(path.join(cwd, entry.instructionFile));
+    fs.existsSync(path.join(cwd, entry.detectionMarker));
   return { id: entry.id, found, entry };
 };
 ```
 
 ### Step 3 — Wire the detector into init
 
-Add your detector to the `DETECTORS` map in [`src/commands/init.js`](src/commands/init.js):
+Add your detector to the `DETECTORS` map in [`src/init/detect.js`](src/init/detect.js):
 
 ```js
 const DETECTORS = {
@@ -47,6 +50,8 @@ const DETECTORS = {
   mytool: require('../detectors/mytool'),
 };
 ```
+
+File: `src/init/detect.js`
 
 That's it. Open a PR.
 

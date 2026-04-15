@@ -9,14 +9,14 @@ Thumbs.db
 .codex/skills/
 .cursor/skills/
 .windsurf/skills/
+.windsurf/workflows/
 .github/skills/
 .gemini/skills/
 
-
-# root instruction files — machine/tool-specific, not part of this repo
+# easyskillz — instruction files are machine/tool-specific
 CLAUDE.md
 AGENTS.md
 GEMINI.md
-.cursor/rules
-.windsurf/rules
+.cursorrules
+.windsurfrules
 .github/copilot-instructions.md

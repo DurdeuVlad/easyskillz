@@ -24,34 +24,46 @@ function probeSymlinks() {
 }
 
 // Check whether a path is already correctly wired (symlink to right src, or stub file present).
-function isWired(targetDir, skillName, srcPath, strategy) {
-  const target = path.join(targetDir, skillName);
+function isWired(targetDir, skillName, srcPath, strategy, toolEntry) {
+  const isWorkflow = toolEntry && toolEntry.type === 'workflows';
+  const target = isWorkflow
+    ? path.join(targetDir, skillName + '.md')
+    : path.join(targetDir, skillName);
+
   if (!fs.existsSync(target)) return false;
+
   if (strategy === 'symlink') {
     try {
       const stat = fs.lstatSync(target);
       if (!stat.isSymbolicLink()) return false;
       const resolved = fs.realpathSync(target);
-      return resolved.toLowerCase() === srcPath.toLowerCase();
+      const expectedSrc = isWorkflow
+        ? path.join(srcPath, 'SKILL.md')
+        : srcPath;
+      return resolved.toLowerCase() === expectedSrc.toLowerCase();
     } catch {
       return false;
     }
   }
-  // stub: look for the SKILL.md stub marker
-  const stubFile = path.join(target, 'SKILL.md');
+  // stub
+  const stubFile = isWorkflow ? target : path.join(target, 'SKILL.md');
   if (!fs.existsSync(stubFile)) return false;
   const content = fs.readFileSync(stubFile, 'utf8');
   return content.includes('easyskillz') && content.includes(skillName);
 }
 
 // Wire a single skill into a tool's skills directory.
+// For workflow-type tools, wires SKILL.md as a flat .md file (skill-name.md).
 // Returns 'wired' | 'already'
 function wireSkill(skillName, toolEntry, cwd, strategy) {
   const srcPath = path.resolve(cwd, '.easyskillz', 'skills', skillName);
   const toolSkillsDir = path.resolve(cwd, toolEntry.skillsDir);
-  const target = path.join(toolSkillsDir, skillName);
+  const isWorkflow = toolEntry.type === 'workflows';
+  const target = isWorkflow
+    ? path.join(toolSkillsDir, skillName + '.md')
+    : path.join(toolSkillsDir, skillName);
 
-  if (isWired(toolSkillsDir, skillName, srcPath, strategy)) return 'already';
+  if (isWired(toolSkillsDir, skillName, srcPath, strategy, toolEntry)) return 'already';
 
   fs.mkdirSync(toolSkillsDir, { recursive: true });
 
@@ -64,7 +76,19 @@ function wireSkill(skillName, toolEntry, cwd, strategy) {
     // target doesn't exist — nothing to remove
   }
 
-  if (strategy === 'symlink') {
+  if (isWorkflow) {
+    // Workflows are flat .md files — symlink SKILL.md directly or write stub
+    const skillMd = path.join(srcPath, 'SKILL.md');
+    if (strategy === 'symlink') {
+      try {
+        fs.symlinkSync(skillMd, target);
+      } catch {
+        fs.writeFileSync(target, stubContent(skillName), 'utf8');
+      }
+    } else {
+      fs.writeFileSync(target, stubContent(skillName), 'utf8');
+    }
+  } else if (strategy === 'symlink') {
     try {
       const type = process.platform === 'win32' ? 'junction' : undefined;
       fs.symlinkSync(srcPath, target, type);
@@ -143,17 +167,24 @@ function appendInstruction(cwd, toolEntry) {
   return 'appended';
 }
 
-// Add tool skills dirs to .gitignore. Idempotent.
+// Add tool skill dirs and instruction files to .gitignore. Idempotent.
 function updateGitignore(cwd, toolEntries) {
   const filePath = path.join(cwd, '.gitignore');
   let existing = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
   const marker = '# easyskillz — tool skill dirs are machine-local';
   if (existing.includes(marker)) return 'already';
+
+  // Deduplicate instruction files (multiple tools may share a path)
+  const instrFiles = [...new Set(toolEntries.map((e) => e.instructionFile))];
+
   const lines = [
     '',
     marker,
     '# run `easyskillz sync` after cloning to re-wire',
     ...toolEntries.map((e) => e.skillsDir + '/'),
+    '',
+    '# easyskillz — instruction files are machine/tool-specific',
+    ...instrFiles,
     '',
   ].join('\n');
   fs.appendFileSync(filePath, lines, 'utf8');

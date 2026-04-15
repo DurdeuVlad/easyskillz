@@ -4,12 +4,13 @@ const config = require('../config');
 const wirer = require('../wirer');
 
 const DETECTORS = {
-  claude:   require('../detectors/claude'),
-  codex:    require('../detectors/codex'),
-  cursor:   require('../detectors/cursor'),
-  windsurf: require('../detectors/windsurf'),
-  copilot:  require('../detectors/copilot'),
-  gemini:   require('../detectors/gemini'),
+  claude:              require('../detectors/claude'),
+  codex:               require('../detectors/codex'),
+  cursor:              require('../detectors/cursor'),
+  windsurf:            require('../detectors/windsurf'),
+  'windsurf-workflows': require('../detectors/windsurf-workflows'),
+  copilot:             require('../detectors/copilot'),
+  gemini:              require('../detectors/gemini'),
 };
 
 // Scan for installed tools, read existing config, probe symlink support.

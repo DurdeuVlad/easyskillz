@@ -111,6 +111,49 @@ test('wireSkill with symlink strategy wires or stubs without throwing', () => {
   }
 });
 
+// ── wireSkill (workflow type) ─────────────────────────────────────────────────
+
+test('wireSkill workflow type creates flat .md file not directory', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'my-workflow');
+    const entry = {
+      id: 'windsurf-workflows',
+      name: 'Windsurf Workflows',
+      skillsDir: '.windsurf/workflows',
+      instructionFile: 'AGENTS.md',
+      type: 'workflows',
+    };
+    const result = wirer.wireSkill('my-workflow', entry, cwd, 'stub');
+    assert.equal(result, 'wired');
+    // should be a flat file, not a directory
+    const target = path.join(cwd, '.windsurf', 'workflows', 'my-workflow.md');
+    assert.ok(fs.existsSync(target), 'my-workflow.md should exist');
+    assert.ok(fs.statSync(target).isFile(), 'should be a file not a directory');
+    // directory variant must NOT exist
+    const targetDir = path.join(cwd, '.windsurf', 'workflows', 'my-workflow');
+    assert.ok(!fs.existsSync(targetDir), 'directory variant must not exist');
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('wireSkill workflow type is idempotent', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'my-workflow');
+    const entry = {
+      id: 'windsurf-workflows', name: 'Windsurf Workflows',
+      skillsDir: '.windsurf/workflows', instructionFile: 'AGENTS.md', type: 'workflows',
+    };
+    wirer.wireSkill('my-workflow', entry, cwd, 'stub');
+    const result = wirer.wireSkill('my-workflow', entry, cwd, 'stub');
+    assert.equal(result, 'already');
+  } finally {
+    cleanup(cwd);
+  }
+});
+
 // ── wireAllSkills ─────────────────────────────────────────────────────────────
 
 test('wireAllSkills wires all skill directories', () => {
@@ -211,16 +254,37 @@ test('appendInstruction appends to existing file', () => {
 
 // ── updateGitignore ───────────────────────────────────────────────────────────
 
-test('updateGitignore adds tool skill dirs', () => {
+test('updateGitignore adds tool skill dirs and instruction files', () => {
   const cwd = tmpDir();
   try {
-    const entries = [{ skillsDir: '.claude/skills' }, { skillsDir: '.cursor/skills' }];
+    const entries = [
+      { skillsDir: '.claude/skills', instructionFile: 'CLAUDE.md' },
+      { skillsDir: '.cursor/skills', instructionFile: 'AGENTS.md' },
+    ];
     const result = wirer.updateGitignore(cwd, entries);
     assert.equal(result, 'updated');
     const content = fs.readFileSync(path.join(cwd, '.gitignore'), 'utf8');
     assert.ok(content.includes('.claude/skills/'));
     assert.ok(content.includes('.cursor/skills/'));
+    assert.ok(content.includes('CLAUDE.md'));
+    assert.ok(content.includes('AGENTS.md'));
     assert.ok(content.includes('# easyskillz'));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('updateGitignore deduplicates instruction files', () => {
+  const cwd = tmpDir();
+  try {
+    const entries = [
+      { skillsDir: '.codex/skills',   instructionFile: 'AGENTS.md' },
+      { skillsDir: '.cursor/skills',  instructionFile: 'AGENTS.md' }, // same file — Codex, Cursor, Windsurf all share AGENTS.md
+      { skillsDir: '.windsurf/skills', instructionFile: 'AGENTS.md' },
+    ];
+    wirer.updateGitignore(cwd, entries);
+    const content = fs.readFileSync(path.join(cwd, '.gitignore'), 'utf8');
+    assert.equal(content.split('AGENTS.md').length - 1, 1, 'AGENTS.md should appear once despite 3 tools sharing it');
   } finally {
     cleanup(cwd);
   }
@@ -229,7 +293,7 @@ test('updateGitignore adds tool skill dirs', () => {
 test('updateGitignore is idempotent', () => {
   const cwd = tmpDir();
   try {
-    const entries = [{ skillsDir: '.claude/skills' }];
+    const entries = [{ skillsDir: '.claude/skills', instructionFile: 'CLAUDE.md' }];
     wirer.updateGitignore(cwd, entries);
     const result = wirer.updateGitignore(cwd, entries);
     assert.equal(result, 'already');

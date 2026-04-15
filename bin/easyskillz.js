@@ -21,7 +21,7 @@ Usage:
 Options:
   --json                           machine-readable JSON output
 
-Supported tools: claude, codex, cursor, windsurf, copilot, gemini
+Supported tools: claude, codex, cursor, windsurf, windsurf-workflows, copilot, gemini
 
 Run \`easyskillz sync\` after cloning a repo to re-wire skills on a new machine.
 `.trim();

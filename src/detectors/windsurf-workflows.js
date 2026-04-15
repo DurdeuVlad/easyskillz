@@ -5,7 +5,7 @@ const path = require('path');
 const registry = require('../registry');
 
 module.exports = function detect(cwd) {
-  const entry = registry.claude;
+  const entry = registry['windsurf-workflows'];
   const found =
     fs.existsSync(path.join(cwd, entry.skillsDir)) ||
     fs.existsSync(path.join(cwd, entry.detectionMarker));
