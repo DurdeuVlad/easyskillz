@@ -17,6 +17,6 @@ Thumbs.db
 CLAUDE.md
 AGENTS.md
 GEMINI.md
-.cursor/rules
-.windsurf/rules
+.cursorrules
+.windsurfrules
 .github/copilot-instructions.md

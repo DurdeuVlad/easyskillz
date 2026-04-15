@@ -140,8 +140,8 @@ No merge conflicts on tool config. No PRs blocked because someone uses a differe
 |------|-------------|-----------------|
 | Claude Code | `.claude/skills/` | `CLAUDE.md` |
 | Codex | `.codex/skills/` | `AGENTS.md` |
-| Cursor | `.cursor/skills/` | `.cursor/rules` |
-| Windsurf | `.windsurf/skills/` | `.windsurf/rules` |
+| Cursor | `.cursor/skills/` | `.cursorrules` |
+| Windsurf | `.windsurf/skills/` | `.windsurfrules` |
 | GitHub Copilot | `.github/skills/` | `.github/copilot-instructions.md` |
 | Gemini CLI | `.gemini/skills/` | `GEMINI.md` |
 
