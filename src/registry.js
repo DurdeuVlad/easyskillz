@@ -8,7 +8,7 @@ const REGISTRY = {
     name: 'Claude Code',
     skillsDir: '.claude/skills',
     instructionFile: 'CLAUDE.md',
-    detectionMarker: 'CLAUDE.md',      // unique to Claude Code
+    detectionMarker: '.claude/settings.json', // auto-created by Claude Code on first run
   },
   codex: {
     id: 'codex',
@@ -29,7 +29,7 @@ const REGISTRY = {
     name: 'Windsurf',
     skillsDir: '.windsurf/skills',
     instructionFile: 'AGENTS.md',
-    detectionMarker: '.windsurf/rules', // rules dir created by Windsurf IDE; easyskillz never writes here
+    detectionMarker: '.windsurf',       // .windsurf/ folder created by Windsurf IDE on project open
   },
   'windsurf-workflows': {
     id: 'windsurf-workflows',
@@ -51,7 +51,7 @@ const REGISTRY = {
     name: 'Gemini CLI',
     skillsDir: '.gemini/skills',
     instructionFile: 'GEMINI.md',
-    detectionMarker: 'GEMINI.md',      // unique to Gemini CLI
+    detectionMarker: '.gemini/settings.json', // auto-created by Gemini CLI on first run
   },
 };
 
