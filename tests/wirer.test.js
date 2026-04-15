@@ -216,7 +216,7 @@ test('updateGitignore adds tool skill dirs and instruction files', () => {
   try {
     const entries = [
       { skillsDir: '.claude/skills', instructionFile: 'CLAUDE.md' },
-      { skillsDir: '.cursor/skills', instructionFile: '.cursorrules' },
+      { skillsDir: '.cursor/skills', instructionFile: 'AGENTS.md' },
     ];
     const result = wirer.updateGitignore(cwd, entries);
     assert.equal(result, 'updated');
@@ -224,7 +224,7 @@ test('updateGitignore adds tool skill dirs and instruction files', () => {
     assert.ok(content.includes('.claude/skills/'));
     assert.ok(content.includes('.cursor/skills/'));
     assert.ok(content.includes('CLAUDE.md'));
-    assert.ok(content.includes('.cursorrules'));
+    assert.ok(content.includes('AGENTS.md'));
     assert.ok(content.includes('# easyskillz'));
   } finally {
     cleanup(cwd);
@@ -235,12 +235,13 @@ test('updateGitignore deduplicates instruction files', () => {
   const cwd = tmpDir();
   try {
     const entries = [
-      { skillsDir: '.claude/skills', instructionFile: 'CLAUDE.md' },
-      { skillsDir: '.codex/skills', instructionFile: 'CLAUDE.md' }, // same file
+      { skillsDir: '.codex/skills',   instructionFile: 'AGENTS.md' },
+      { skillsDir: '.cursor/skills',  instructionFile: 'AGENTS.md' }, // same file — Codex, Cursor, Windsurf all share AGENTS.md
+      { skillsDir: '.windsurf/skills', instructionFile: 'AGENTS.md' },
     ];
     wirer.updateGitignore(cwd, entries);
     const content = fs.readFileSync(path.join(cwd, '.gitignore'), 'utf8');
-    assert.equal(content.split('CLAUDE.md').length - 1, 1, 'CLAUDE.md should appear once');
+    assert.equal(content.split('AGENTS.md').length - 1, 1, 'AGENTS.md should appear once despite 3 tools sharing it');
   } finally {
     cleanup(cwd);
   }
