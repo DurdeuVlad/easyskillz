@@ -19,13 +19,19 @@ const REGISTRY = {
     id: 'cursor',
     name: 'Cursor',
     skillsDir: '.cursor/skills',
-    instructionFile: '.cursorrules',
+    instructionFile: 'AGENTS.md',
   },
   windsurf: {
     id: 'windsurf',
     name: 'Windsurf',
     skillsDir: '.windsurf/skills',
-    instructionFile: '.windsurfrules',
+    instructionFile: 'AGENTS.md',
+  },
+  'windsurf-workflows': {
+    id: 'windsurf-workflows',
+    name: 'Windsurf Workflows',
+    skillsDir: '.windsurf/workflows',
+    instructionFile: 'AGENTS.md',
   },
   copilot: {
     id: 'copilot',
