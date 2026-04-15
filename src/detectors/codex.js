@@ -8,6 +8,6 @@ module.exports = function detect(cwd) {
   const entry = registry.codex;
   const found =
     fs.existsSync(path.join(cwd, entry.skillsDir)) ||
-    fs.existsSync(path.join(cwd, entry.instructionFile));
+    fs.existsSync(path.join(cwd, entry.detectionMarker));
   return { id: entry.id, found, entry };
 };
