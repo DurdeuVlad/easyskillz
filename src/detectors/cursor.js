@@ -1,0 +1,13 @@
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const registry = require('../registry');
+
+module.exports = function detect(cwd) {
+  const entry = registry.cursor;
+  const found =
+    fs.existsSync(path.join(cwd, entry.skillsDir)) ||
+    fs.existsSync(path.join(cwd, entry.instructionFile));
+  return { id: entry.id, found, entry };
+};
