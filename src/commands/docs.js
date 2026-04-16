@@ -3,9 +3,8 @@
 const fs = require('fs');
 const path = require('path');
 const config = require('../config');
-const registry = require('../registry');
-const { writeInstruction, isManaged } = require('../docs/syncFolder');
-const { listInstructionFiles } = require('../docs/listFolders');
+const { scanAll } = require('../docs/scanInstructionFiles');
+const { centralize, DOCS_DIR } = require('../docs/centralizeFiles');
 
 async function docs({ cwd, subAction, args, json, isTTY }) {
   switch (subAction) {
@@ -14,12 +13,8 @@ async function docs({ cwd, subAction, args, json, isTTY }) {
       return await docsSync({ cwd, json });
     case 'list':
       return await docsList({ cwd, json });
-    case 'add':
-      return await docsAdd({ cwd, args, json });
-    case 'remove':
-      return await docsRemove({ cwd, args, json });
     default:
-      process.stderr.write(`Error: unknown docs subcommand "${subAction}"\nUsage: easyskillz docs [sync|list|add|remove]\n`);
+      process.stderr.write(`Error: unknown docs subcommand "${subAction}"\nUsage: easyskillz docs [sync|list]\n`);
       process.exit(1);
   }
 }
@@ -27,204 +22,106 @@ async function docs({ cwd, subAction, args, json, isTTY }) {
 async function docsSync({ cwd, json }) {
   const cfg = config.read(cwd);
   
-  if (cfg.docsFolders.length === 0) {
-    cfg.docsFolders = ['.'];
-    config.write(cwd, cfg);
+  if (!cfg.manageDocs) {
+    const msg = 'Docs management is not enabled. Run `easyskillz sync` to enable it.';
+    if (json) {
+      process.stdout.write(JSON.stringify({ ok: false, error: msg }) + '\n');
+    } else {
+      console.error(msg);
+    }
+    process.exit(1);
+    return;
   }
   
-  const results = [];
+  if (!json) console.log('Scanning for instruction files...');
   
-  for (const folder of cfg.docsFolders) {
-    const folderPath = path.join(cwd, folder);
-    const isRootFolder = folder === '.';
-    
-    if (!fs.existsSync(folderPath)) {
-      if (!json) {
-        console.warn(`Warning: folder ${folder} does not exist, skipping`);
-      }
-      continue;
+  const scanned = scanAll(cwd);
+  const fileCount = Object.values(scanned).flat().length;
+  
+  if (fileCount === 0) {
+    if (!json) console.log('No instruction files found.');
+    if (json) {
+      process.stdout.write(JSON.stringify({ ok: true, centralized: 0 }) + '\n');
     }
-    
-    for (const toolId of cfg.tools) {
-      const toolEntry = registry[toolId];
-      if (!toolEntry) continue;
-      
-      const status = writeInstruction(folderPath, toolEntry, isRootFolder);
-      results.push({ folder, toolId, status });
-      
-      if (!json && status === 'written') {
-        const targetFile = path.basename(toolEntry.instructionFile);
-        console.log(`✓ ${folder}/${targetFile}`);
-      }
-    }
+    return;
+  }
+  
+  if (!json) {
+    console.log(`Found ${fileCount} instruction file(s) in ${Object.keys(scanned).length} folder(s)`);
+    console.log('Centralizing...');
+  }
+  
+  const actions = centralize(cwd, scanned, cfg.docsStrategy);
+  
+  if (!json) {
+    console.log(`✓ Centralized ${actions.length} file(s) to .easyskillz/docs/`);
   }
   
   if (json) {
-    console.log(JSON.stringify({ ok: true, results }));
-  } else if (results.every(r => r.status === 'already')) {
-    console.log('All instruction files are up to date.');
+    process.stdout.write(JSON.stringify({ ok: true, centralized: actions.length }) + '\n');
   }
 }
 
 async function docsList({ cwd, json }) {
   const cfg = config.read(cwd);
-  const files = listInstructionFiles(cwd, cfg, registry);
   
-  if (json) {
-    console.log(JSON.stringify({ ok: true, files }));
-  } else {
-    if (files.length === 0) {
-      console.log('No instruction files tracked.');
-      return;
-    }
-    
-    console.log('\nFolder          Tool                File                        Status');
-    console.log('─'.repeat(80));
-    
-    for (const f of files) {
-      const folder = f.folder.padEnd(15);
-      const tool = f.toolName.padEnd(19);
-      const file = path.basename(f.filePath).padEnd(27);
-      const status = f.exists ? (f.managed ? 'managed' : 'unmanaged') : 'missing';
-      console.log(`${folder} ${tool} ${file} ${status}`);
-    }
-    console.log();
-  }
-}
-
-async function docsAdd({ cwd, args, json }) {
-  const folder = args[0];
-  
-  if (!folder) {
+  if (!cfg.manageDocs) {
+    const msg = 'Docs management is not enabled. Run `easyskillz sync` to enable it.';
     if (json) {
-      console.log(JSON.stringify({ ok: false, error: 'Folder argument required' }));
+      process.stdout.write(JSON.stringify({ ok: false, error: msg }) + '\n');
     } else {
-      console.error('Usage: easyskillz docs add <folder>');
+      console.error(msg);
     }
     process.exit(1);
+    return;
   }
   
-  const folderPath = path.join(cwd, folder);
+  const docsPath = path.join(cwd, DOCS_DIR);
   
-  if (!fs.existsSync(folderPath)) {
+  if (!fs.existsSync(docsPath)) {
+    if (!json) console.log('No centralized docs found.');
     if (json) {
-      console.log(JSON.stringify({ ok: false, error: 'Folder does not exist' }));
-    } else {
-      console.error(`Error: folder ${folder} does not exist`);
-    }
-    process.exit(1);
-  }
-  
-  if (!fs.statSync(folderPath).isDirectory()) {
-    if (json) {
-      console.log(JSON.stringify({ ok: false, error: 'Path is not a directory' }));
-    } else {
-      console.error(`Error: ${folder} is not a directory`);
-    }
-    process.exit(1);
-  }
-  
-  const result = config.addDocsFolder(cwd, folder);
-  
-  if (result === 'already') {
-    if (json) {
-      console.log(JSON.stringify({ ok: true, status: 'already' }));
-    } else {
-      console.log(`Folder ${folder} is already tracked.`);
+      process.stdout.write(JSON.stringify({ ok: true, folders: [] }) + '\n');
     }
     return;
   }
   
-  const cfg = config.read(cwd);
-  const written = [];
-  const isRootFolder = false;
+  const folders = [];
   
-  for (const toolId of cfg.tools) {
-    const toolEntry = registry[toolId];
-    if (!toolEntry) continue;
+  function scan(dir, relPath = '') {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
     
-    const status = writeInstruction(folderPath, toolEntry, isRootFolder);
-    if (status === 'written') {
-      written.push(path.basename(toolEntry.instructionFile));
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const newRelPath = relPath ? `${relPath}/${entry.name}` : entry.name;
+        scan(path.join(dir, entry.name), newRelPath);
+      } else if (entry.isFile()) {
+        const folderRel = relPath || '.';
+        let existing = folders.find(f => f.folder === folderRel);
+        if (!existing) {
+          existing = { folder: folderRel, files: [] };
+          folders.push(existing);
+        }
+        existing.files.push(entry.name);
+      }
     }
   }
+  
+  scan(docsPath);
   
   if (json) {
-    console.log(JSON.stringify({ ok: true, status: 'added', written }));
+    process.stdout.write(JSON.stringify({ ok: true, folders }) + '\n');
   } else {
-    console.log(`✓ Added ${folder}`);
-    if (written.length > 0) {
-      console.log(`  Created: ${written.join(', ')}`);
-    }
-  }
-}
-
-async function docsRemove({ cwd, args, json }) {
-  const folder = args[0];
-  
-  if (!folder) {
-    if (json) {
-      console.log(JSON.stringify({ ok: false, error: 'Folder argument required' }));
+    if (folders.length === 0) {
+      console.log('No centralized docs found.');
     } else {
-      console.error('Usage: easyskillz docs remove <folder>');
-    }
-    process.exit(1);
-  }
-  
-  const normalized = path.relative(cwd, path.resolve(cwd, folder)).split(path.sep).join('/') || '.';
-  
-  if (normalized === '.') {
-    if (json) {
-      console.log(JSON.stringify({ ok: false, error: 'Cannot remove root folder' }));
-    } else {
-      console.error('Error: cannot remove root folder (.)');
-    }
-    process.exit(1);
-  }
-  
-  const result = config.removeDocsFolder(cwd, folder);
-  
-  if (result === 'notFound') {
-    if (json) {
-      console.log(JSON.stringify({ ok: true, status: 'notFound' }));
-    } else {
-      console.log(`Folder ${folder} is not tracked.`);
-    }
-    return;
-  }
-  
-  const folderPath = path.join(cwd, folder);
-  const cfg = config.read(cwd);
-  const deleted = [];
-  
-  const filesToDelete = new Set();
-  
-  for (const toolId of cfg.tools) {
-    const toolEntry = registry[toolId];
-    if (!toolEntry) continue;
-    
-    const targetFile = path.basename(toolEntry.instructionFile);
-    const filePath = path.join(folderPath, targetFile);
-    
-    if (isManaged(filePath)) {
-      filesToDelete.add(filePath);
-    }
-  }
-  
-  for (const filePath of filesToDelete) {
-    try {
-      fs.unlinkSync(filePath);
-      deleted.push(path.basename(filePath));
-    } catch (err) {
-    }
-  }
-  
-  if (json) {
-    console.log(JSON.stringify({ ok: true, status: 'removed', deleted }));
-  } else {
-    console.log(`✓ Removed ${folder}`);
-    if (deleted.length > 0) {
-      console.log(`  Deleted: ${deleted.join(', ')}`);
+      console.log(`\nCentralized instruction files (strategy: ${cfg.docsStrategy}):\n`);
+      for (const { folder, files } of folders) {
+        console.log(`  ${folder}/`);
+        for (const file of files) {
+          console.log(`    - ${file}`);
+        }
+      }
     }
   }
 }

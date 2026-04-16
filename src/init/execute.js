@@ -35,8 +35,12 @@ const META_CONTENT = [
 
 function execute(cwd, toolIds, strategy, actions, out) {
   const existingCfg = config.read(cwd);
-  const docsFolders = existingCfg.docsFolders.length > 0 ? existingCfg.docsFolders : ['.'];
-  config.write(cwd, { tools: toolIds, linkStrategy: strategy, docsFolders });
+  config.write(cwd, { 
+    tools: toolIds, 
+    linkStrategy: strategy,
+    manageDocs: existingCfg.manageDocs,
+    docsStrategy: existingCfg.docsStrategy
+  });
 
   const metaDir = path.join(cwd, '.easyskillz', 'skills', META_SKILL);
   fs.mkdirSync(metaDir, { recursive: true });

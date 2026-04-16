@@ -6,27 +6,32 @@ Format: `## [version] — YYYY-MM-DD` · sections: `Added`, `Fixed`, `Changed`, 
 
 ---
 
-## [0.2.0] — 2026-04-15
+## [0.2.0] — 2026-04-16
 
 ### Added
-- **Instruction file management** — easyskillz now manages instruction files (`CLAUDE.md`, `AGENTS.md`, etc.) with managed blocks that preserve user content
-- `easyskillz docs sync` — update instruction files for all tracked folders
-- `easyskillz docs list` — show instruction files and their status
-- `easyskillz docs add <folder>` — start tracking a subfolder for instruction files
-- `easyskillz docs remove <folder>` — stop tracking a subfolder
+- **Centralized instruction file management** — easyskillz now centralizes instruction files (`CLAUDE.md`, `AGENTS.md`, etc.) in `.easyskillz/docs/` and creates symlinks at expected locations
+- **Two strategies**: Choose between `unified` (one INSTRUCTION.md per folder for all tools) or `tool-specific` (separate file per tool)
+- **Auto-detection** — `easyskillz sync` automatically scans entire repo for instruction files and centralizes them
+- **All-in or all-out** — Single opt-in decision during first sync, then fully automated
+- `easyskillz docs sync` — force re-scan and centralize any new instruction files
+- `easyskillz docs list` — show centralized instruction files
 - `easyskillz export --target <path>` — copy skills + config to another project and auto-sync
-- `docsFolders` config field — tracks which folders should have instruction files
-- Managed block format (`<!-- easyskillz-managed -->`) — allows safe updates while preserving user content
+- `manageDocs` config field — boolean flag for all-in docs management
+- `docsStrategy` config field — `unified` or `tool-specific` strategy choice
 - North Star Principles in CONTRIBUTING.md — design philosophy for all features
+- `audit-northstar` skill — autonomous North Star principle compliance checking (dev-only)
 
 ### Changed
-- `easyskillz sync` now writes managed blocks instead of single-line hints
+- `easyskillz sync` prompts for docs management on first run
+- Instruction files are now symlinks (gitignored) pointing to centralized sources in `.easyskillz/docs/` (committed)
 - Meta-skill (`_easyskillz`) always updated on sync to keep documentation current
 - Meta-skill content expanded with all v0.2.0 commands
-- Instruction files upgraded automatically — old single-line hints removed and replaced with managed blocks
+- Hierarchical instruction files supported (e.g., `/CLAUDE.md`, `/src/CLAUDE.md`, `/src/api/CLAUDE.md`)
 
 ### Breaking
-- `wirer.appendInstruction` no longer called by core commands (kept for backward compatibility but deprecated)
+- `wirer.appendInstruction` deprecated (kept for backward compatibility)
+- `docsFolders` config removed — replaced with `manageDocs` + `docsStrategy`
+- `easyskillz docs add/remove` commands removed — auto-detection handles everything
 
 ---
 

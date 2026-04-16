@@ -189,11 +189,18 @@ No silent failures. No copies getting out of sync on machines that support symli
 ```json
 {
   "tools": ["claude", "cursor"],
-  "linkStrategy": "symlink"
+  "linkStrategy": "symlink",
+  "manageDocs": true,
+  "docsStrategy": "unified"
 }
 ```
 
-Symlinks themselves are gitignored — they're machine-local.
+**Instruction file management** (optional):
+- `manageDocs: true` — easyskillz centralizes instruction files in `.easyskillz/docs/` and creates symlinks
+- `docsStrategy: "unified"` — one `INSTRUCTION.md` per folder for all tools
+- `docsStrategy: "tool-specific"` — separate file per tool per folder
+
+Symlinks themselves are gitignored — they're machine-local. Centralized docs in `.easyskillz/docs/` are committed.
 
 ---
 
@@ -215,16 +222,16 @@ $ easyskillz sync --json
 
 ## Self-Propagating
 
-`sync` creates a `_easyskillz` meta-skill and adds a managed block to each registered tool's instruction file:
+`sync` creates a `_easyskillz` meta-skill that teaches AI agents how to use easyskillz.
 
-```markdown
-<!-- easyskillz-managed -->
-Run `easyskillz add <skill-name>` to create a new skill.
-Run `easyskillz sync` after cloning on a new machine.
-<!-- /easyskillz-managed -->
-```
+**Optional**: Enable instruction file management during first sync:
+- Automatically scans entire repo for `CLAUDE.md`, `AGENTS.md`, etc.
+- Centralizes them in `.easyskillz/docs/`
+- Replaces with symlinks (gitignored)
+- Choose `unified` (one source for all tools) or `tool-specific` (separate per tool)
+- Fully automated after initial choice
 
-Your AI agents will use the CLI to create skills from now on. User content outside the managed block is preserved. The loop closes.
+Your AI agents will use the CLI to create skills and manage instruction files. The loop closes.
 
 ---
 

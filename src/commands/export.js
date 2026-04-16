@@ -76,7 +76,6 @@ async function exportCmd({ cwd, args, json, isTTY }) {
   const skillsToCopy = sourceSkills.filter(s => !targetSkills.includes(s));
   
   const mergedTools = [...new Set([...targetConfig.tools, ...sourceConfig.tools])];
-  const mergedDocsFolders = [...new Set([...targetConfig.docsFolders, ...sourceConfig.docsFolders])];
   
   if (!json) {
     console.log('\nExport plan:');
@@ -114,7 +113,6 @@ async function exportCmd({ cwd, args, json, isTTY }) {
   const newTargetConfig = {
     ...targetConfig,
     tools: mergedTools,
-    docsFolders: mergedDocsFolders,
   };
   config.write(resolvedTarget, newTargetConfig);
   

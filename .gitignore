@@ -13,10 +13,12 @@ Thumbs.db
 .github/skills/
 .gemini/skills/
 
-# easyskillz — instruction files are machine/tool-specific
-CLAUDE.md
-AGENTS.md
-GEMINI.md
-.cursorrules
-.windsurfrules
-.github/copilot-instructions.md
+# easyskillz — instruction file symlinks are machine-local
+# centralized source is in .easyskillz/docs/ (committed)
+# symlinks are created by `easyskillz sync` (gitignored)
+**/CLAUDE.md
+**/AGENTS.md
+**/GEMINI.md
+**/.cursorrules
+**/.windsurfrules
+**/copilot-instructions.md

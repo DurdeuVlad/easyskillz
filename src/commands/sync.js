@@ -3,6 +3,10 @@
 const detect  = require('../init/detect');
 const { plan } = require('../init/plan');
 const execute = require('../init/execute');
+const config = require('../config');
+const { promptDocsSetup } = require('../docs/promptDocsSetup');
+const { scanAll } = require('../docs/scanInstructionFiles');
+const { centralize } = require('../docs/centralizeFiles');
 
 async function sync({ cwd, json, isTTY }) {
   const out = json ? () => {} : (s) => process.stdout.write(s + '\n');
@@ -29,13 +33,55 @@ async function sync({ cwd, json, isTTY }) {
   if (actions.length === 0) {
     out('Everything already wired. Nothing to do.');
     if (json) process.stdout.write(JSON.stringify({ ok: true, tools: toolIds, strategy, actions: [] }) + '\n');
-    return;
+  } else {
+    execute(cwd, toolIds, strategy, actions, out);
+    out('');
+    out(`Done. ${toolIds.length} tool(s) wired via ${strategy}.`);
   }
 
-  execute(cwd, toolIds, strategy, actions, out);
-
-  out('');
-  out(`Done. ${toolIds.length} tool(s) wired via ${strategy}.`);
+  // Docs management
+  const cfg = config.read(cwd);
+  
+  if (cfg.manageDocs === false && cfg.docsStrategy === null && isTTY) {
+    // First time - prompt for docs setup
+    const docsChoice = await promptDocsSetup();
+    
+    if (docsChoice.manageDocs) {
+      cfg.manageDocs = true;
+      cfg.docsStrategy = docsChoice.docsStrategy;
+      config.write(cwd, cfg);
+      
+      out('');
+      out('Scanning for instruction files...');
+      const scanned = scanAll(cwd);
+      const fileCount = Object.values(scanned).flat().length;
+      
+      if (fileCount > 0) {
+        out(`Found ${fileCount} instruction file(s) in ${Object.keys(scanned).length} folder(s)`);
+        out('Centralizing...');
+        
+        const centralizeActions = centralize(cwd, scanned, cfg.docsStrategy);
+        out(`✓ Centralized ${centralizeActions.length} file(s) to .easyskillz/docs/`);
+      } else {
+        out('No existing instruction files found.');
+      }
+    } else {
+      cfg.manageDocs = false;
+      config.write(cwd, cfg);
+    }
+  } else if (cfg.manageDocs === true) {
+    // Auto-scan and centralize any new files
+    const scanned = scanAll(cwd);
+    const fileCount = Object.values(scanned).flat().length;
+    
+    if (fileCount > 0) {
+      const centralizeActions = centralize(cwd, scanned, cfg.docsStrategy);
+      if (centralizeActions.length > 0) {
+        out('');
+        out(`✓ Centralized ${centralizeActions.length} new instruction file(s)`);
+      }
+    }
+  }
 
   if (json) {
     process.stdout.write(JSON.stringify({ ok: true, tools: toolIds, strategy, actions: actions.map((a) => a.type) }) + '\n');

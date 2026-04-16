@@ -1,239 +1,122 @@
 'use strict';
 
-const { test } = require('node:test');
-const assert = require('node:assert/strict');
+const test = require('node:test');
+const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const docs = require('../src/commands/docs');
 const config = require('../src/config');
-const { MANAGED_OPEN } = require('../src/docs/syncFolder');
+const { scanAll } = require('../src/docs/scanInstructionFiles');
+const { centralize } = require('../src/docs/centralizeFiles');
 
 function tmpDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'easyskillz-test-'));
-  return dir;
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'easyskillz-test-'));
 }
 
 function cleanup(dir) {
-  fs.rmSync(dir, { recursive: true, force: true });
+  if (fs.existsSync(dir)) {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 }
 
-function setupTestProject(cwd) {
-  config.write(cwd, { tools: ['claude'], linkStrategy: 'symlink', docsFolders: [] });
-  fs.mkdirSync(path.join(cwd, '.claude'), { recursive: true });
-  fs.writeFileSync(path.join(cwd, '.claude', 'settings.json'), '{}', 'utf8');
-}
-
-test('docs sync initialises docsFolders to [.] when empty', async () => {
+test('scanAll finds instruction files in root', () => {
   const cwd = tmpDir();
   try {
-    setupTestProject(cwd);
-    await docs({ cwd, subAction: 'sync', args: [], json: true, isTTY: false });
-    const cfg = config.read(cwd);
-    assert.deepEqual(cfg.docsFolders, ['.']);
+    fs.writeFileSync(path.join(cwd, 'CLAUDE.md'), '# Claude instructions', 'utf8');
+    fs.writeFileSync(path.join(cwd, 'AGENTS.md'), '# Agents instructions', 'utf8');
+    
+    const scanned = scanAll(cwd);
+    assert.ok(scanned['.']);
+    assert.deepEqual(scanned['.'].sort(), ['AGENTS.md', 'CLAUDE.md']);
   } finally {
     cleanup(cwd);
   }
 });
 
-test('docs sync creates managed files at root', async () => {
+test('scanAll finds instruction files in subdirectories', () => {
   const cwd = tmpDir();
   try {
-    setupTestProject(cwd);
-    await docs({ cwd, subAction: 'sync', args: [], json: true, isTTY: false });
-    const claudeFile = path.join(cwd, 'CLAUDE.md');
-    assert.ok(fs.existsSync(claudeFile));
-    const content = fs.readFileSync(claudeFile, 'utf8');
-    assert.ok(content.includes(MANAGED_OPEN));
-  } finally {
-    cleanup(cwd);
-  }
-});
-
-test('docs sync is idempotent', async () => {
-  const cwd = tmpDir();
-  try {
-    setupTestProject(cwd);
-    await docs({ cwd, subAction: 'sync', args: [], json: true, isTTY: false });
-    const before = fs.readFileSync(path.join(cwd, 'CLAUDE.md'), 'utf8');
-    await docs({ cwd, subAction: 'sync', args: [], json: true, isTTY: false });
-    const after = fs.readFileSync(path.join(cwd, 'CLAUDE.md'), 'utf8');
-    assert.equal(before, after);
-  } finally {
-    cleanup(cwd);
-  }
-});
-
-test('docs sync removes old single-line hint on upgrade', async () => {
-  const cwd = tmpDir();
-  try {
-    setupTestProject(cwd);
-    const claudeFile = path.join(cwd, 'CLAUDE.md');
-    fs.writeFileSync(claudeFile, 'When creating a new skill, run: `easyskillz add <name>`\n', 'utf8');
-    await docs({ cwd, subAction: 'sync', args: [], json: true, isTTY: false });
-    const content = fs.readFileSync(claudeFile, 'utf8');
-    assert.ok(!content.includes('When creating a new skill, run:'));
-    assert.ok(content.includes(MANAGED_OPEN));
-  } finally {
-    cleanup(cwd);
-  }
-});
-
-test('docs sync warns but does not throw for missing subfolder', async () => {
-  const cwd = tmpDir();
-  try {
-    setupTestProject(cwd);
-    const cfg = config.read(cwd);
-    cfg.docsFolders = ['.', 'nonexistent'];
-    config.write(cwd, cfg);
-    await docs({ cwd, subAction: 'sync', args: [], json: true, isTTY: false });
-    assert.ok(fs.existsSync(path.join(cwd, 'CLAUDE.md')));
-  } finally {
-    cleanup(cwd);
-  }
-});
-
-test('docs list returns correct status objects', async () => {
-  const cwd = tmpDir();
-  try {
-    setupTestProject(cwd);
-    await docs({ cwd, subAction: 'sync', args: [], json: true, isTTY: false });
-    const output = [];
-    const originalLog = console.log;
-    console.log = (s) => output.push(s);
-    try {
-      await docs({ cwd, subAction: 'list', args: [], json: true, isTTY: false });
-    } finally {
-      console.log = originalLog;
-    }
-    const result = JSON.parse(output[0]);
-    assert.ok(result.ok);
-    assert.ok(result.files.length > 0);
-    assert.ok(result.files[0].managed);
-  } finally {
-    cleanup(cwd);
-  }
-});
-
-test('docs add registers folder and creates files', async () => {
-  const cwd = tmpDir();
-  try {
-    setupTestProject(cwd);
     fs.mkdirSync(path.join(cwd, 'src'), { recursive: true });
-    await docs({ cwd, subAction: 'add', args: ['src'], json: true, isTTY: false });
-    const cfg = config.read(cwd);
-    assert.ok(cfg.docsFolders.includes('src'));
-    assert.ok(fs.existsSync(path.join(cwd, 'src', 'CLAUDE.md')));
+    fs.writeFileSync(path.join(cwd, 'CLAUDE.md'), '# Root', 'utf8');
+    fs.writeFileSync(path.join(cwd, 'src', 'CLAUDE.md'), '# Src', 'utf8');
+    
+    const scanned = scanAll(cwd);
+    assert.ok(scanned['.'].includes('CLAUDE.md'));
+    assert.ok(scanned['src'].includes('CLAUDE.md'));
   } finally {
     cleanup(cwd);
   }
 });
 
-test('docs add is idempotent', async () => {
+test('scanAll skips node_modules and hidden dirs', () => {
   const cwd = tmpDir();
   try {
-    setupTestProject(cwd);
-    fs.mkdirSync(path.join(cwd, 'src'), { recursive: true });
-    await docs({ cwd, subAction: 'add', args: ['src'], json: true, isTTY: false });
-    const output = [];
-    const originalLog = console.log;
-    console.log = (s) => output.push(s);
-    try {
-      await docs({ cwd, subAction: 'add', args: ['src'], json: true, isTTY: false });
-    } finally {
-      console.log = originalLog;
-    }
-    const result = JSON.parse(output[0]);
-    assert.equal(result.status, 'already');
+    fs.mkdirSync(path.join(cwd, 'node_modules'), { recursive: true });
+    fs.mkdirSync(path.join(cwd, '.git'), { recursive: true });
+    fs.writeFileSync(path.join(cwd, 'node_modules', 'CLAUDE.md'), '# Should skip', 'utf8');
+    fs.writeFileSync(path.join(cwd, '.git', 'AGENTS.md'), '# Should skip', 'utf8');
+    
+    const scanned = scanAll(cwd);
+    assert.deepEqual(scanned, {});
   } finally {
     cleanup(cwd);
   }
 });
 
-test('docs add rejects non-existent folder', async () => {
+test('centralize unified strategy creates single INSTRUCTION.md', () => {
   const cwd = tmpDir();
   try {
-    setupTestProject(cwd);
-    let exitCode = 0;
-    const originalExit = process.exit;
-    process.exit = (code) => { exitCode = code; throw new Error('exit'); };
-    try {
-      await docs({ cwd, subAction: 'add', args: ['nonexistent'], json: true, isTTY: false });
-    } catch (e) {
-      if (e.message !== 'exit') throw e;
-    } finally {
-      process.exit = originalExit;
-    }
-    assert.equal(exitCode, 1);
+    fs.writeFileSync(path.join(cwd, 'CLAUDE.md'), '# Claude content', 'utf8');
+    fs.writeFileSync(path.join(cwd, 'AGENTS.md'), '# Agents content', 'utf8');
+    
+    const scanned = scanAll(cwd);
+    const actions = centralize(cwd, scanned, 'unified');
+    
+    assert.ok(actions.length > 0);
+    assert.ok(fs.existsSync(path.join(cwd, '.easyskillz', 'docs', '.', 'INSTRUCTION.md')));
+    
+    const content = fs.readFileSync(path.join(cwd, '.easyskillz', 'docs', '.', 'INSTRUCTION.md'), 'utf8');
+    assert.ok(content.includes('Claude content'));
+    assert.ok(content.includes('Agents content'));
   } finally {
     cleanup(cwd);
   }
 });
 
-test('docs remove unregisters folder and deletes managed files', async () => {
+test('centralize tool-specific strategy preserves separate files', () => {
   const cwd = tmpDir();
   try {
-    setupTestProject(cwd);
-    fs.mkdirSync(path.join(cwd, 'src'), { recursive: true });
-    await docs({ cwd, subAction: 'add', args: ['src'], json: true, isTTY: false });
-    await docs({ cwd, subAction: 'remove', args: ['src'], json: true, isTTY: false });
-    const cfg = config.read(cwd);
-    assert.ok(!cfg.docsFolders.includes('src'));
-    assert.ok(!fs.existsSync(path.join(cwd, 'src', 'CLAUDE.md')));
+    fs.writeFileSync(path.join(cwd, 'CLAUDE.md'), '# Claude content', 'utf8');
+    fs.writeFileSync(path.join(cwd, 'AGENTS.md'), '# Agents content', 'utf8');
+    
+    const scanned = scanAll(cwd);
+    const actions = centralize(cwd, scanned, 'tool-specific');
+    
+    assert.ok(actions.length > 0);
+    assert.ok(fs.existsSync(path.join(cwd, '.easyskillz', 'docs', '.', 'CLAUDE.md')));
+    assert.ok(fs.existsSync(path.join(cwd, '.easyskillz', 'docs', '.', 'AGENTS.md')));
+    
+    const claudeContent = fs.readFileSync(path.join(cwd, '.easyskillz', 'docs', '.', 'CLAUDE.md'), 'utf8');
+    const agentsContent = fs.readFileSync(path.join(cwd, '.easyskillz', 'docs', '.', 'AGENTS.md'), 'utf8');
+    
+    assert.ok(claudeContent.includes('Claude content'));
+    assert.ok(agentsContent.includes('Agents content'));
+    assert.ok(!claudeContent.includes('Agents content'));
   } finally {
     cleanup(cwd);
   }
 });
 
-test('docs remove refuses root folder', async () => {
+test('centralize handles nested directories', () => {
   const cwd = tmpDir();
   try {
-    setupTestProject(cwd);
-    let exitCode = 0;
-    const originalExit = process.exit;
-    process.exit = (code) => { exitCode = code; throw new Error('exit'); };
-    try {
-      await docs({ cwd, subAction: 'remove', args: ['.'], json: true, isTTY: false });
-    } catch (e) {
-      if (e.message !== 'exit') throw e;
-    } finally {
-      process.exit = originalExit;
-    }
-    assert.equal(exitCode, 1);
-  } finally {
-    cleanup(cwd);
-  }
-});
-
-test('docs remove handles notFound', async () => {
-  const cwd = tmpDir();
-  try {
-    setupTestProject(cwd);
-    const output = [];
-    const originalLog = console.log;
-    console.log = (s) => output.push(s);
-    try {
-      await docs({ cwd, subAction: 'remove', args: ['src'], json: true, isTTY: false });
-    } finally {
-      console.log = originalLog;
-    }
-    const result = JSON.parse(output[0]);
-    assert.equal(result.status, 'notFound');
-  } finally {
-    cleanup(cwd);
-  }
-});
-
-test('docs remove leaves unmanaged files', async () => {
-  const cwd = tmpDir();
-  try {
-    setupTestProject(cwd);
-    fs.mkdirSync(path.join(cwd, 'src'), { recursive: true });
-    const userFile = path.join(cwd, 'src', 'CLAUDE.md');
-    fs.writeFileSync(userFile, 'User content\n', 'utf8');
-    config.addDocsFolder(cwd, 'src');
-    await docs({ cwd, subAction: 'remove', args: ['src'], json: true, isTTY: false });
-    assert.ok(fs.existsSync(userFile));
+    fs.mkdirSync(path.join(cwd, 'src', 'api'), { recursive: true });
+    fs.writeFileSync(path.join(cwd, 'src', 'api', 'CLAUDE.md'), '# API docs', 'utf8');
+    
+    const scanned = scanAll(cwd);
+    const actions = centralize(cwd, scanned, 'unified');
+    
+    assert.ok(fs.existsSync(path.join(cwd, '.easyskillz', 'docs', 'src', 'api', 'INSTRUCTION.md')));
   } finally {
     cleanup(cwd);
   }
