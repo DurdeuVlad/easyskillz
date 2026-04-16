@@ -167,36 +167,11 @@ function appendInstruction(cwd, toolEntry) {
   return 'appended';
 }
 
-// Add tool skill dirs and instruction files to .gitignore. Idempotent.
-function updateGitignore(cwd, toolEntries) {
-  const filePath = path.join(cwd, '.gitignore');
-  let existing = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
-  const marker = '# easyskillz — tool skill dirs are machine-local';
-  if (existing.includes(marker)) return 'already';
-
-  // Deduplicate instruction files (multiple tools may share a path)
-  const instrFiles = [...new Set(toolEntries.map((e) => e.instructionFile))];
-
-  const lines = [
-    '',
-    marker,
-    '# run `easyskillz sync` after cloning to re-wire',
-    ...toolEntries.map((e) => e.skillsDir + '/'),
-    '',
-    '# easyskillz — instruction files are machine/tool-specific',
-    ...instrFiles,
-    '',
-  ].join('\n');
-  fs.appendFileSync(filePath, lines, 'utf8');
-  return 'updated';
-}
-
 module.exports = {
   probeSymlinks,
   wireSkill,
   wireAllSkills,
   scanUnwired,
   appendInstruction,
-  updateGitignore,
   isWired,
 };

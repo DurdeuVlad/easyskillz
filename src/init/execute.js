@@ -75,12 +75,6 @@ function execute(cwd, toolIds, strategy, actions, out) {
     out(`  ✓ Updated ${a.entry.instructionFile}`);
   }
 
-  if (actions.some((a) => a.type === 'gitignore')) {
-    const toolEntries = toolIds.map((id) => registry[id]).filter(Boolean);
-    wirer.updateGitignore(cwd, toolEntries);
-    out('  ✓ Updated .gitignore');
-  }
-
 }
 
 module.exports = execute;

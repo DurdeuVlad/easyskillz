@@ -70,7 +70,7 @@ async function plan(cwd, toolIds, strategy, out, isTTY) {
     if (!hasManaged) actions.push({ type: 'instruct', entry });
   }
 
-  // .gitignore
+  // .gitignore (will be handled separately in sync command based on strategy)
   const gitignorePath = path.join(cwd, '.gitignore');
   const gitignoreContent = fs.existsSync(gitignorePath)
     ? fs.readFileSync(gitignorePath, 'utf8') : '';
@@ -86,7 +86,7 @@ async function plan(cwd, toolIds, strategy, out, isTTY) {
     if (a.type === 'meta-skill') out(`  [ create ]    .easyskillz/skills/${META_SKILL}/SKILL.md`);
     if (a.type === 'wire-meta')  out(`  [ wire ]      ${a.entry.skillsDir}/${META_SKILL}  →  .easyskillz/skills/${META_SKILL}`);
     if (a.type === 'instruct')   out(`  [ instruct ]  ${a.entry.instructionFile}`);
-    if (a.type === 'gitignore')  out(`  [ .gitignore ] add tool skill dirs`);
+    if (a.type === 'gitignore')  out(`  [ .gitignore ] configure based on your choice`);
   }
   out('');
 

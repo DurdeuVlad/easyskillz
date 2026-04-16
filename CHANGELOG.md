@@ -6,6 +6,34 @@ Format: `## [version] — YYYY-MM-DD` · sections: `Added`, `Fixed`, `Changed`, 
 
 ---
 
+## [2.0.0-alpha.2] — 2026-04-16
+
+### Added
+- **3-state gitignore management** — Choose how tool configurations are gitignored after sync
+  - `full` (recommended): Gitignore all tool files, regenerate with `easyskillz sync`
+  - `conflict-only`: Gitignore only personal config files, commit symlinks and instruction files
+  - `none`: Manual gitignore management
+- Interactive prompt on first sync to choose gitignore strategy
+- `gitignoreStrategy` config field — `'full'` | `'conflict-only'` | `'none'`
+- `configFiles` registry field — list of conflict-prone config files per tool
+- Non-TTY mode defaults to `'full'` strategy (safest for CI/CD)
+- `easyskillz register <tool>` respects existing gitignore strategy
+
+### Changed
+- Gitignore management moved to dedicated module (`src/gitignore/`)
+- Old `wirer.updateGitignore()` removed in favor of strategy-aware implementation
+- Gitignore prompt happens after docs management for better UX flow
+- Strategy prompt independent of gitignore action (handles already-synced repos)
+
+### Fixed
+- Gitignore prompt now shows even when repo already has easyskillz entries
+- Register command no longer defaults to 'full' when strategy is unset
+- Empty gitignore sections no longer created in conflict-only mode
+- Null strategy handling in all code paths
+- Non-TTY mode consistency with TTY defaults
+
+---
+
 ## [0.2.0] — 2026-04-16
 
 ### Added

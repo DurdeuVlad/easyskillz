@@ -4,6 +4,7 @@ const registry = require('../registry');
 const config = require('../config');
 const wirer = require('../wirer');
 const { writeInstruction } = require('../docs/syncFolder');
+const { updateGitignore } = require('../gitignore/updateGitignore');
 
 async function register({ cwd, args, json }) {
   const out = json ? () => {} : (s) => process.stdout.write(s + '\n');
@@ -46,6 +47,14 @@ async function register({ cwd, args, json }) {
   // Write managed block to tool's instruction file
   writeInstruction(cwd, entry);
   out(`  ✓ Updated ${entry.instructionFile}`);
+
+  // Update .gitignore based on existing strategy (if set)
+  if (cfg.gitignoreStrategy && cfg.gitignoreStrategy !== 'none') {
+    const result = updateGitignore(cwd, [entry], cfg.gitignoreStrategy);
+    if (result === 'updated') {
+      out(`  ✓ Updated .gitignore (${cfg.gitignoreStrategy} strategy)`);
+    }
+  }
 
   out('');
   out(`${entry.name} registered. ${results.length} skill(s) wired.`);

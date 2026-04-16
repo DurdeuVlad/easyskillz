@@ -5,7 +5,7 @@
     "codex"
   ],
   "linkStrategy": "symlink",
-  "docsFolders": [
-    "."
-  ]
+  "manageDocs": true,
+  "docsStrategy": "unified",
+  "gitignoreStrategy": "full"
 }

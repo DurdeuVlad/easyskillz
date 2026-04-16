@@ -4,9 +4,12 @@ const detect  = require('../init/detect');
 const { plan } = require('../init/plan');
 const execute = require('../init/execute');
 const config = require('../config');
+const registry = require('../registry');
 const { promptDocsSetup } = require('../docs/promptDocsSetup');
 const { scanAll } = require('../docs/scanInstructionFiles');
 const { centralize } = require('../docs/centralizeFiles');
+const { promptGitignoreSetup } = require('../gitignore/promptGitignoreSetup');
+const { updateGitignore } = require('../gitignore/updateGitignore');
 
 async function sync({ cwd, json, isTTY }) {
   const out = json ? () => {} : (s) => process.stdout.write(s + '\n');
@@ -30,9 +33,9 @@ async function sync({ cwd, json, isTTY }) {
     process.exit(0);
   }
 
+  // Execute wiring actions if any
   if (actions.length === 0) {
     out('Everything already wired. Nothing to do.');
-    if (json) process.stdout.write(JSON.stringify({ ok: true, tools: toolIds, strategy, actions: [] }) + '\n');
   } else {
     execute(cwd, toolIds, strategy, actions, out);
     out('');
@@ -40,7 +43,7 @@ async function sync({ cwd, json, isTTY }) {
   }
 
   // Docs management
-  const cfg = config.read(cwd);
+  let cfg = config.read(cwd);
   
   if (cfg.manageDocs === false && cfg.docsStrategy === null && isTTY) {
     // First time - prompt for docs setup
@@ -80,6 +83,34 @@ async function sync({ cwd, json, isTTY }) {
         out('');
         out(`✓ Centralized ${centralizeActions.length} new instruction file(s)`);
       }
+    }
+  }
+
+  // Gitignore management (prompt on first run if strategy not set)
+  cfg = config.read(cwd);
+  
+  if (cfg.gitignoreStrategy === null) {
+    if (isTTY) {
+      const gitignoreChoice = await promptGitignoreSetup();
+      cfg.gitignoreStrategy = gitignoreChoice.gitignoreStrategy;
+    } else {
+      // Non-TTY mode: default to 'full' (safest option)
+      cfg.gitignoreStrategy = 'full';
+    }
+    config.write(cwd, cfg);
+  }
+
+  // Apply gitignore if needed and strategy is set
+  if (actions.some((a) => a.type === 'gitignore') && cfg.gitignoreStrategy) {
+    const toolEntries = toolIds.map((id) => registry[id]).filter(Boolean);
+    const result = updateGitignore(cwd, toolEntries, cfg.gitignoreStrategy);
+    
+    if (result === 'updated') {
+      out('');
+      out(`  ✓ Updated .gitignore (${cfg.gitignoreStrategy} strategy)`);
+    } else if (result === 'skipped') {
+      out('');
+      out('  ⊘ Skipped .gitignore (manual management)');
     }
   }
 

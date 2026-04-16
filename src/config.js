@@ -12,6 +12,7 @@ const DEFAULTS = {
   linkStrategy: 'symlink', // 'symlink' | 'stub'
   manageDocs: false, // all-in or all-out instruction file management
   docsStrategy: null, // 'unified' | 'tool-specific' | null (not chosen yet)
+  gitignoreStrategy: null, // 'full' | 'conflict-only' | 'none' | null (not chosen yet)
 };
 
 function read(cwd) {
