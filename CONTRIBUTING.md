@@ -1,5 +1,15 @@
 # Contributing
 
+## North Star Principles
+
+Every feature and fix must satisfy all five.
+
+1. **Centralise** — one source of truth. Skills live in `.easyskillz/skills/`. Tool-specific dirs are outputs, never inputs.
+2. **Never force the user** — no operation is mandatory. Every write is opt-in or idempotent. Never overwrite user-owned content.
+3. **Sync is the entry point** — `easyskillz sync` is the one command users remember. It handles everything on first run and is safe to re-run at any time.
+4. **Respect user decisions** — if the user edited something outside a managed block, preserve it. Only delete/overwrite files easyskillz created.
+5. **Automation** — agents run easyskillz on behalf of users. Users should be able to forget easyskillz exists.
+
 ## Adding a New Tool
 
 One PR = one new detector file + one registry entry.

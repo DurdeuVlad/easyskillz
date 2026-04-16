@@ -99,3 +99,91 @@ test('listSkills returns skill directory names', () => {
     cleanup(cwd);
   }
 });
+
+test('read returns empty docsFolders by default', () => {
+  const cwd = tmpDir();
+  try {
+    const cfg = config.read(cwd);
+    assert.deepEqual(cfg.docsFolders, []);
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('addDocsFolder adds folder and returns added', () => {
+  const cwd = tmpDir();
+  try {
+    fs.mkdirSync(path.join(cwd, 'src'), { recursive: true });
+    const result = config.addDocsFolder(cwd, 'src');
+    assert.equal(result, 'added');
+    const cfg = config.read(cwd);
+    assert.deepEqual(cfg.docsFolders, ['src']);
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('addDocsFolder normalizes folder path', () => {
+  const cwd = tmpDir();
+  try {
+    fs.mkdirSync(path.join(cwd, 'src'), { recursive: true });
+    config.addDocsFolder(cwd, './src');
+    const cfg = config.read(cwd);
+    assert.deepEqual(cfg.docsFolders, ['src']);
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('addDocsFolder returns already when folder exists', () => {
+  const cwd = tmpDir();
+  try {
+    fs.mkdirSync(path.join(cwd, 'src'), { recursive: true });
+    config.addDocsFolder(cwd, 'src');
+    const result = config.addDocsFolder(cwd, 'src');
+    assert.equal(result, 'already');
+    const cfg = config.read(cwd);
+    assert.deepEqual(cfg.docsFolders, ['src']);
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('addDocsFolder handles root folder as dot', () => {
+  const cwd = tmpDir();
+  try {
+    config.write(cwd, { tools: [], linkStrategy: 'symlink', docsFolders: [] });
+    const result = config.addDocsFolder(cwd, '.');
+    assert.equal(result, 'added');
+    const cfg = config.read(cwd);
+    assert.deepEqual(cfg.docsFolders, ['.']);
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('removeDocsFolder removes folder and returns removed', () => {
+  const cwd = tmpDir();
+  try {
+    config.write(cwd, { tools: [], linkStrategy: 'symlink', docsFolders: [] });
+    fs.mkdirSync(path.join(cwd, 'src'), { recursive: true });
+    config.addDocsFolder(cwd, 'src');
+    const result = config.removeDocsFolder(cwd, 'src');
+    assert.equal(result, 'removed');
+    const cfg = config.read(cwd);
+    assert.deepEqual(cfg.docsFolders, []);
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('removeDocsFolder returns notFound when folder not tracked', () => {
+  const cwd = tmpDir();
+  try {
+    config.write(cwd, { tools: [], linkStrategy: 'symlink', docsFolders: [] });
+    const result = config.removeDocsFolder(cwd, 'src');
+    assert.equal(result, 'notFound');
+  } finally {
+    cleanup(cwd);
+  }
+});

@@ -4,5 +4,8 @@
     "cursor",
     "codex"
   ],
-  "linkStrategy": "symlink"
+  "linkStrategy": "symlink",
+  "docsFolders": [
+    "."
+  ]
 }

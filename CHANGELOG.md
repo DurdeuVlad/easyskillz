@@ -6,6 +6,30 @@ Format: `## [version] — YYYY-MM-DD` · sections: `Added`, `Fixed`, `Changed`, 
 
 ---
 
+## [0.2.0] — 2026-04-15
+
+### Added
+- **Instruction file management** — easyskillz now manages instruction files (`CLAUDE.md`, `AGENTS.md`, etc.) with managed blocks that preserve user content
+- `easyskillz docs sync` — update instruction files for all tracked folders
+- `easyskillz docs list` — show instruction files and their status
+- `easyskillz docs add <folder>` — start tracking a subfolder for instruction files
+- `easyskillz docs remove <folder>` — stop tracking a subfolder
+- `easyskillz export --target <path>` — copy skills + config to another project and auto-sync
+- `docsFolders` config field — tracks which folders should have instruction files
+- Managed block format (`<!-- easyskillz-managed -->`) — allows safe updates while preserving user content
+- North Star Principles in CONTRIBUTING.md — design philosophy for all features
+
+### Changed
+- `easyskillz sync` now writes managed blocks instead of single-line hints
+- Meta-skill (`_easyskillz`) always updated on sync to keep documentation current
+- Meta-skill content expanded with all v0.2.0 commands
+- Instruction files upgraded automatically — old single-line hints removed and replaced with managed blocks
+
+### Breaking
+- `wirer.appendInstruction` no longer called by core commands (kept for backward compatibility but deprecated)
+
+---
+
 ## [0.1.2] — 2026-04-15
 
 ### Fixed

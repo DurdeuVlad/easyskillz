@@ -6,30 +6,42 @@ const registry = require('../registry');
 const config = require('../config');
 const wirer = require('../wirer');
 const { META_SKILL } = require('./plan');
+const { writeInstruction } = require('../docs/syncFolder');
 
 const META_CONTENT = [
   '# easyskillz',
   '',
   'Skills in this project are managed by easyskillz.',
   '',
-  'When creating a new skill, run:',
-  '```',
-  'easyskillz add <name>',
-  '```',
+  '## Commands',
+  '',
+  '### Skills',
+  '`easyskillz add <name>`        — create a new skill and wire it to all registered tools',
+  '`easyskillz sync`              — detect tools, wire skills, update instruction files',
+  '`easyskillz register <tool>`   — add a tool and wire all existing skills to it',
+  '',
+  '### Instruction files',
+  '`easyskillz docs sync`              — update instruction files for all tracked folders',
+  '`easyskillz docs list`              — show instruction files and their status',
+  '`easyskillz docs add <folder>`      — start tracking a subfolder',
+  '`easyskillz docs remove <folder>`   — stop tracking a subfolder',
+  '',
+  '### Transfer',
+  '`easyskillz export --target <path>` — copy skills + config to another project and sync it',
   '',
   'After cloning this repo on a new machine, run:',
-  '```',
-  'easyskillz sync',
-  '```',
+  '`easyskillz sync`',
 ].join('\n') + '\n';
 
 function execute(cwd, toolIds, strategy, actions, out) {
-  config.write(cwd, { tools: toolIds, linkStrategy: strategy });
+  const existingCfg = config.read(cwd);
+  const docsFolders = existingCfg.docsFolders.length > 0 ? existingCfg.docsFolders : ['.'];
+  config.write(cwd, { tools: toolIds, linkStrategy: strategy, docsFolders });
 
+  const metaDir = path.join(cwd, '.easyskillz', 'skills', META_SKILL);
+  fs.mkdirSync(metaDir, { recursive: true });
+  fs.writeFileSync(path.join(metaDir, 'SKILL.md'), META_CONTENT, 'utf8');
   if (actions.some((a) => a.type === 'meta-skill')) {
-    const metaDir = path.join(cwd, '.easyskillz', 'skills', META_SKILL);
-    fs.mkdirSync(metaDir, { recursive: true });
-    fs.writeFileSync(path.join(metaDir, 'SKILL.md'), META_CONTENT, 'utf8');
     out('  ✓ Created meta-skill');
   }
 
@@ -40,7 +52,7 @@ function execute(cwd, toolIds, strategy, actions, out) {
   }
 
   for (const a of actions.filter((a) => a.type === 'instruct')) {
-    wirer.appendInstruction(cwd, a.entry);
+    writeInstruction(cwd, a.entry);
     out(`  ✓ Updated ${a.entry.instructionFile}`);
   }
 
@@ -49,6 +61,7 @@ function execute(cwd, toolIds, strategy, actions, out) {
     wirer.updateGitignore(cwd, toolEntries);
     out('  ✓ Updated .gitignore');
   }
+
 }
 
 module.exports = execute;

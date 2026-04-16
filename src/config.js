@@ -10,6 +10,7 @@ const CONFIG_FILE = '.easyskillz/easyskillz.json';
 const DEFAULTS = {
   tools: [],
   linkStrategy: 'symlink', // 'symlink' | 'stub'
+  docsFolders: [],
 };
 
 function read(cwd) {
@@ -45,4 +46,27 @@ function listSkills(cwd) {
   );
 }
 
-module.exports = { read, write, skillsPath, listSkills, CONFIG_DIR, SKILLS_DIR };
+function addDocsFolder(cwd, folder) {
+  const config = read(cwd);
+  const normalized = path.relative(cwd, path.resolve(cwd, folder)).split(path.sep).join('/') || '.';
+  if (config.docsFolders.includes(normalized)) {
+    return 'already';
+  }
+  config.docsFolders.push(normalized);
+  write(cwd, config);
+  return 'added';
+}
+
+function removeDocsFolder(cwd, folder) {
+  const config = read(cwd);
+  const normalized = path.relative(cwd, path.resolve(cwd, folder)).split(path.sep).join('/') || '.';
+  const idx = config.docsFolders.indexOf(normalized);
+  if (idx === -1) {
+    return 'notFound';
+  }
+  config.docsFolders.splice(idx, 1);
+  write(cwd, config);
+  return 'removed';
+}
+
+module.exports = { read, write, skillsPath, listSkills, addDocsFolder, removeDocsFolder, CONFIG_DIR, SKILLS_DIR };

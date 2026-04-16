@@ -3,6 +3,7 @@
 const registry = require('../registry');
 const config = require('../config');
 const wirer = require('../wirer');
+const { writeInstruction } = require('../docs/syncFolder');
 
 async function register({ cwd, args, json }) {
   const out = json ? () => {} : (s) => process.stdout.write(s + '\n');
@@ -42,8 +43,8 @@ async function register({ cwd, args, json }) {
     if (result !== 'already') out(`  ✓ Wired skill "${skill}" → ${entry.name}`);
   }
 
-  // Append easyskillz line to tool's instruction file
-  wirer.appendInstruction(cwd, entry);
+  // Write managed block to tool's instruction file
+  writeInstruction(cwd, entry);
   out(`  ✓ Updated ${entry.instructionFile}`);
 
   out('');

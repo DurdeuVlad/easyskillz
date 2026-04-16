@@ -12,6 +12,8 @@
 
 </div>
 
+> **For AI Assistants**: Read [INSTALL-SKILL.md](INSTALL-SKILL.md) for installation instructions.
+
 ---
 
 ## The Problem
@@ -44,15 +46,27 @@ npm install -g easyskillz
 
 ---
 
-## Three Commands
+## Commands
 
+### Core
 ```bash
-easyskillz sync               # detect tools, wire everything, set up .easyskillz/
-easyskillz add <name>         # create a skill and wire it to all your tools instantly
-easyskillz register <tool>    # add a tool and wire all existing skills to it
+easyskillz sync                       # detect tools, wire everything, set up .easyskillz/
+easyskillz add <name>                 # create a skill and wire it to all your tools instantly
+easyskillz register <tool>            # add a tool and wire all existing skills to it
 ```
 
-That's the whole API.
+### Instruction Files
+```bash
+easyskillz docs sync                  # update instruction files for all tracked folders
+easyskillz docs list                  # show instruction files and their status
+easyskillz docs add <folder>          # start tracking a subfolder
+easyskillz docs remove <folder>       # stop tracking a subfolder
+```
+
+### Transfer
+```bash
+easyskillz export --target <path>     # copy skills + config to another project
+```
 
 ---
 
@@ -140,8 +154,9 @@ No merge conflicts on tool config. No PRs blocked because someone uses a differe
 |------|-------------|-----------------|
 | Claude Code | `.claude/skills/` | `CLAUDE.md` |
 | Codex | `.codex/skills/` | `AGENTS.md` |
-| Cursor | `.cursor/skills/` | `.cursor/rules` |
-| Windsurf | `.windsurf/skills/` | `.windsurf/rules` |
+| Cursor | `.cursor/skills/` | `AGENTS.md` |
+| Windsurf | `.windsurf/skills/` | `AGENTS.md` |
+| Windsurf Workflows | `.windsurf/workflows/` | `AGENTS.md` |
 | GitHub Copilot | `.github/skills/` | `.github/copilot-instructions.md` |
 | Gemini CLI | `.gemini/skills/` | `GEMINI.md` |
 
@@ -200,13 +215,16 @@ $ easyskillz sync --json
 
 ## Self-Propagating
 
-`sync` creates a `_easyskillz` meta-skill and appends one line to each registered tool's instruction file:
+`sync` creates a `_easyskillz` meta-skill and adds a managed block to each registered tool's instruction file:
 
-```
-When creating a new skill, run: `easyskillz add <name>`
+```markdown
+<!-- easyskillz-managed -->
+Run `easyskillz add <skill-name>` to create a new skill.
+Run `easyskillz sync` after cloning on a new machine.
+<!-- /easyskillz-managed -->
 ```
 
-Your AI agents will use the CLI to create skills from now on. The loop closes.
+Your AI agents will use the CLI to create skills from now on. User content outside the managed block is preserved. The loop closes.
 
 ---
 
@@ -267,10 +285,10 @@ easyskillz is the missing glue.
 
 ## Roadmap
 
-- **Configurable instruction file paths** — right now `sync` appends the easyskillz line to root files like `CLAUDE.md` and `AGENTS.md`. A future release will let you control where that line goes, or skip it entirely, per tool. [Discussion welcome.](https://github.com/DurdeuVlad/easyskillz/issues)
 - **`easyskillz remove <name>`** — unwire and delete a skill from all tools
 - **`easyskillz list`** — show all skills and their wiring status per tool
 - **`easyskillz status`** — quick health check, flags anything broken or unwired
+- **Skill templates** — `easyskillz add <name> --template <type>` for common patterns
 
 ---
 

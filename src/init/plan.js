@@ -5,6 +5,7 @@ const path = require('path');
 const readline = require('readline');
 const registry = require('../registry');
 const wirer = require('../wirer');
+const { MANAGED_OPEN } = require('../docs/syncFolder');
 
 const META_SKILL = '_easyskillz';
 
@@ -45,11 +46,8 @@ async function plan(cwd, toolIds, strategy, out, isTTY) {
     actions.push({ type: 'wire', skill, entry });
   }
 
-  // Meta-skill
-  const metaSrc = path.join(cwd, '.easyskillz', 'skills', META_SKILL, 'SKILL.md');
-  if (!fs.existsSync(metaSrc)) {
-    actions.push({ type: 'meta-skill' });
-  }
+  // Meta-skill (always included to ensure it's up to date)
+  actions.push({ type: 'meta-skill' });
   const unwiredMetaToolIds = new Set(
     unwired.filter((u) => u.skill === META_SKILL).map((u) => u.toolId)
   );
@@ -63,14 +61,13 @@ async function plan(cwd, toolIds, strategy, out, isTTY) {
     }
   }
 
-  // Instruction file appends
-  const instrLine = 'When creating a new skill, run: `easyskillz add <name>`';
+  // Instruction file managed blocks
   for (const toolId of toolIds) {
     const entry = registry[toolId];
     const instrPath = path.resolve(cwd, entry.instructionFile);
     const exists = fs.existsSync(instrPath);
-    const hasLine = exists && fs.readFileSync(instrPath, 'utf8').includes(instrLine);
-    if (!hasLine) actions.push({ type: 'instruct', entry });
+    const hasManaged = exists && fs.readFileSync(instrPath, 'utf8').includes(MANAGED_OPEN);
+    if (!hasManaged) actions.push({ type: 'instruct', entry });
   }
 
   // .gitignore
