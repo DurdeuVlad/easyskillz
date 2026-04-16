@@ -36,6 +36,36 @@ npm install -g easyskillz; easyskillz sync
 
 **Never use**: `&&`, `ls`, `cat`, `grep` - these don't work in PowerShell.
 
+## Autonomous Operation (No User Interaction)
+
+When running commands autonomously, use **command piping** to provide answers:
+
+**Accept docs management with unified strategy**:
+```bash
+echo "Y\n1" | easyskillz sync
+```
+
+**Accept docs management with tool-specific strategy**:
+```bash
+echo "Y\n2" | easyskillz sync
+```
+
+**Decline docs management**:
+```bash
+echo "n" | easyskillz sync
+```
+
+**PowerShell syntax** (Windows):
+```powershell
+"Y`n1" | easyskillz sync
+```
+
+**Get JSON output** (machine-readable):
+```bash
+easyskillz sync --json
+easyskillz docs list --json
+```
+
 ## Other Commands
 
 **Add a new skill**:
@@ -48,9 +78,14 @@ easyskillz add <skill-name>
 easyskillz register <tool-name>
 ```
 
-**Get JSON output**:
+**Force re-scan instruction files**:
 ```bash
-easyskillz sync --json
+easyskillz docs sync
+```
+
+**Show centralized instruction files**:
+```bash
+easyskillz docs list
 ```
 
 ## Critical Rules
@@ -58,4 +93,5 @@ easyskillz sync --json
 - Never manually copy skills between directories
 - Never edit `.easyskillz/easyskillz.json` manually
 - `sync` is idempotent - safe to run multiple times
-- CLI auto-skips prompts when not in a TTY (no flags needed)
+- Use piping for autonomous operation - never wait for user input
+- CLI auto-skips prompts when not in a TTY (but piping is more reliable)
