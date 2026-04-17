@@ -1,0 +1,11 @@
+{
+  "tools": [
+    "claude",
+    "codex",
+    "cursor"
+  ],
+  "linkStrategy": "symlink",
+  "manageDocs": true,
+  "docsStrategy": "unified",
+  "gitignoreStrategy": "full"
+}

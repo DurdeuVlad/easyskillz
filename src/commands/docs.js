@@ -23,7 +23,7 @@ async function docsSync({ cwd, json }) {
   const cfg = config.read(cwd);
   
   if (!cfg.manageDocs) {
-    const msg = 'Docs management is not enabled. Run `easyskillz sync` to enable it.';
+    const msg = 'Docs management is not enabled. Run `easyskillz project sync` to enable it.';
     if (json) {
       process.stdout.write(JSON.stringify({ ok: false, error: msg }) + '\n');
     } else {
@@ -66,7 +66,7 @@ async function docsList({ cwd, json }) {
   const cfg = config.read(cwd);
   
   if (!cfg.manageDocs) {
-    const msg = 'Docs management is not enabled. Run `easyskillz sync` to enable it.';
+    const msg = 'Docs management is not enabled. Run `easyskillz project sync` to enable it.';
     if (json) {
       process.stdout.write(JSON.stringify({ ok: false, error: msg }) + '\n');
     } else {

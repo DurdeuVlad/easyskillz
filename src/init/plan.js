@@ -16,7 +16,7 @@ function ask(rl, question) {
 
 // Scan for unwired skills, build action list, print plan, confirm with user.
 // Returns actions[] or null if user aborted.
-async function plan(cwd, toolIds, strategy, out, isTTY) {
+async function plan(cwd, toolIds, strategy, out, isTTY, skipConfirm = false) {
   const draftConfig = { tools: toolIds, linkStrategy: strategy };
   const unwired = wirer.scanUnwired(cwd, draftConfig, registry);
 
@@ -91,7 +91,7 @@ async function plan(cwd, toolIds, strategy, out, isTTY) {
   }
   out('');
 
-  if (isTTY) {
+  if (isTTY && !skipConfirm) {
     // Check for AI before prompting
     if (isAIAgent()) {
       showAIWarning('project sync');

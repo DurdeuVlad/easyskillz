@@ -11,6 +11,10 @@ const { centralize } = require('../../docs/centralizeFiles');
 const { updateGitignore } = require('../../gitignore/updateGitignore');
 
 class SyncCommand extends BaseCommand {
+  constructor(cwd, options) {
+    super(options);
+  }
+
   async execute() {
     // Detect tools
     const { toolIds, strategy, existingConfig } = detect(this.cwd, this.out);
@@ -22,8 +26,9 @@ class SyncCommand extends BaseCommand {
         'Supported tools: claude, codex, cursor, windsurf, windsurf-workflows, copilot, gemini');
     }
 
-    // Plan wiring actions
-    const actions = await plan(this.cwd, toolIds, strategy, this.out, this.isTTY);
+    // Plan wiring actions (skip confirmation if flags provided)
+    const skipConfirm = this.hasFlags();
+    const actions = await plan(this.cwd, toolIds, strategy, this.out, this.isTTY, skipConfirm);
 
     if (actions === null) {
       this.out('Aborted.');
