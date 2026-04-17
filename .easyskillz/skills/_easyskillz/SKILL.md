@@ -52,10 +52,10 @@ code .easyskillz/skills/review-pr/SKILL.md
 
 When running commands autonomously (without user interaction):
 
-**Non-interactive mode (pipe answers):**
+**Non-interactive mode (bash/sh):**
 ```bash
-echo "Y\n1\n1" | easyskillz sync  # Accept docs (unified) + gitignore (full)
-echo "n\n2" | easyskillz sync      # Decline docs + gitignore (conflict-only)
+printf "Y\n1\n1\n" | easyskillz sync  # Accept docs (unified) + gitignore (full)
+printf "n\n2\n" | easyskillz sync      # Decline docs + gitignore (conflict-only)
 ```
 
 **Machine-readable output:**
