@@ -1,13 +1,14 @@
 'use strict';
 
-const addCmd = require('../commands/add');
-const listCmd = require('../commands/list');
-const deactivateCmd = require('../commands/deactivate');
-const activateCmd = require('../commands/activate');
-const removeCmd = require('../commands/remove');
+const AddCommand = require('../commands/skill/AddCommand');
+const ListCommand = require('../commands/skill/ListCommand');
+const DeactivateCommand = require('../commands/skill/DeactivateCommand');
+const ActivateCommand = require('../commands/skill/ActivateCommand');
+const RemoveCommand = require('../commands/skill/RemoveCommand');
 
 async function skill({ action, args, flags, cwd, isTTY }) {
-  const { json, confirm } = flags;
+  const { json } = flags;
+  const options = { cwd, flags, isTTY, json };
   
   switch (action) {
     case 'add': {
@@ -17,13 +18,16 @@ async function skill({ action, args, flags, cwd, isTTY }) {
         console.error('Usage: easyskillz skill add <name>');
         process.exit(1);
       }
-      await addCmd({ cwd, args: [name], json, isTTY });
+      const cmd = new AddCommand(name, cwd, options);
+      await cmd.execute();
       break;
     }
     
-    case 'list':
-      listCmd(cwd, { json });
+    case 'list': {
+      const cmd = new ListCommand(cwd, options);
+      await cmd.execute();
       break;
+    }
     
     case 'deactivate': {
       const name = args[0];
@@ -32,7 +36,8 @@ async function skill({ action, args, flags, cwd, isTTY }) {
         console.error('Usage: easyskillz skill deactivate <name>');
         process.exit(1);
       }
-      deactivateCmd(name, cwd, { json });
+      const cmd = new DeactivateCommand(name, cwd, options);
+      await cmd.execute();
       break;
     }
     
@@ -43,7 +48,8 @@ async function skill({ action, args, flags, cwd, isTTY }) {
         console.error('Usage: easyskillz skill activate <name>');
         process.exit(1);
       }
-      activateCmd(name, cwd, { json });
+      const cmd = new ActivateCommand(name, cwd, options);
+      await cmd.execute();
       break;
     }
     
@@ -54,7 +60,8 @@ async function skill({ action, args, flags, cwd, isTTY }) {
         console.error('Usage: easyskillz skill remove <name> [--confirm]');
         process.exit(1);
       }
-      await removeCmd(name, cwd, { json, confirm });
+      const cmd = new RemoveCommand(name, cwd, options);
+      await cmd.execute();
       break;
     }
     

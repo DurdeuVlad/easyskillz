@@ -1,12 +1,12 @@
 'use strict';
 
-const registerCmd = require('../commands/register');
-const unregisterCmd = require('../commands/unregister');
-const config = require('../config');
-const registry = require('../registry');
+const RegisterCommand = require('../commands/tool/RegisterCommand');
+const UnregisterCommand = require('../commands/tool/UnregisterCommand');
+const ListCommand = require('../commands/tool/ListCommand');
 
 async function tool({ action, args, flags, cwd, isTTY }) {
-  const { json, confirm, mode } = flags;
+  const { json } = flags;
+  const options = { cwd, flags, isTTY, json };
   
   switch (action) {
     case 'register': {
@@ -16,7 +16,8 @@ async function tool({ action, args, flags, cwd, isTTY }) {
         console.error('Usage: easyskillz tool register <name>');
         process.exit(1);
       }
-      await registerCmd({ cwd, args: [name], json, isTTY });
+      const cmd = new RegisterCommand(name, cwd, options);
+      await cmd.execute();
       break;
     }
     
@@ -27,35 +28,14 @@ async function tool({ action, args, flags, cwd, isTTY }) {
         console.error('Usage: easyskillz tool unregister <name> [--mode=<full|revert>] [--confirm]');
         process.exit(1);
       }
-      await unregisterCmd(name, cwd, { json, mode, confirm });
+      const cmd = new UnregisterCommand(name, cwd, options);
+      await cmd.execute();
       break;
     }
     
     case 'list': {
-      const cfg = config.read(cwd);
-      const tools = cfg.tools || [];
-      
-      if (json) {
-        console.log(JSON.stringify({
-          ok: true,
-          tools: tools.map(id => ({
-            id,
-            name: registry[id]?.name || id,
-          })),
-        }, null, 2));
-      } else {
-        if (tools.length === 0) {
-          console.log('No tools registered.');
-          console.log('');
-          console.log('Run `easyskillz project sync` to detect and register tools.');
-        } else {
-          console.log('Registered tools:');
-          tools.forEach(id => {
-            const entry = registry[id];
-            console.log(`  - ${entry ? entry.name : id} (${id})`);
-          });
-        }
-      }
+      const cmd = new ListCommand(cwd, options);
+      await cmd.execute();
       break;
     }
     

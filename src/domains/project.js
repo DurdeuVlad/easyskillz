@@ -1,15 +1,16 @@
 'use strict';
 
-const syncCmd = require('../commands/sync');
+const SyncCommand = require('../commands/project/SyncCommand');
 const exportCmd = require('../commands/export');
 
 async function project({ action, args, flags, cwd, isTTY }) {
   const { json } = flags;
+  const options = { cwd, flags, isTTY, json };
   
   switch (action) {
     case 'sync': {
-      // Pass all flags to sync command
-      await syncCmd({ cwd, args: [], json, isTTY, flags });
+      const cmd = new SyncCommand(cwd, options);
+      await cmd.execute();
       break;
     }
     
