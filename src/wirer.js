@@ -152,26 +152,10 @@ function scanUnwired(cwd, config, registry) {
   return missing;
 }
 
-// Append the easyskillz line to a tool's instruction file. Idempotent.
-function appendInstruction(cwd, toolEntry) {
-  const filePath = path.resolve(cwd, toolEntry.instructionFile);
-  const line = 'When creating a new skill, run: `easyskillz add <name>`';
-  let existing = '';
-  if (fs.existsSync(filePath)) {
-    existing = fs.readFileSync(filePath, 'utf8');
-    if (existing.includes(line)) return 'already';
-  }
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  const prefix = existing && !existing.endsWith('\n') ? '\n' : '';
-  fs.appendFileSync(filePath, `${prefix}${line}\n`, 'utf8');
-  return 'appended';
-}
-
 module.exports = {
   probeSymlinks,
   wireSkill,
   wireAllSkills,
   scanUnwired,
-  appendInstruction,
   isWired,
 };
