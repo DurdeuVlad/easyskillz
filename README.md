@@ -40,40 +40,64 @@ Run `easyskillz sync` once. Every tool gets a symlink. Every teammate who clones
 
 ## Install
 
+**Latest stable:**
 ```bash
 npm install -g easyskillz
+```
+
+**Alpha (v2.0.0 - domain-based commands, OOP architecture):**
+```bash
+npm install -g easyskillz@alpha
 ```
 
 ---
 
 ## Commands
 
-### Core
+> **v2.0.0-alpha.3**: Commands now use domain-based structure: `easyskillz <domain> <action>`
+
+### Skill Management
 ```bash
-easyskillz sync                       # detect tools, wire everything, set up .easyskillz/
-easyskillz add <name>                 # create a skill and wire it to all your tools instantly
-easyskillz register <tool>            # add a tool and wire all existing skills to it
+easyskillz skill add <name>           # create a skill and wire it to all tools
+easyskillz skill list                 # show all skills (active + deactivated)
+easyskillz skill deactivate <name>    # soft delete (reversible)
+easyskillz skill activate <name>      # restore a deactivated skill
+easyskillz skill remove <name>        # permanently delete (requires --confirm for AI)
+```
+
+### Tool Management
+```bash
+easyskillz tool register <name>       # add a tool and wire all skills to it
+easyskillz tool unregister <name>     # remove a tool (requires --mode and --confirm for AI)
+easyskillz tool list                  # show registered tools
+```
+
+### Project Operations
+```bash
+easyskillz project sync               # detect tools, wire everything, set up .easyskillz/
+easyskillz project export --target <path>  # copy skills + config to another project
 ```
 
 ### Instruction Files
 ```bash
 easyskillz docs sync                  # update instruction files for all tracked folders
 easyskillz docs list                  # show instruction files and their status
-easyskillz docs add <folder>          # start tracking a subfolder
-easyskillz docs remove <folder>       # stop tracking a subfolder
 ```
 
-### Transfer
+### AI-Friendly (One-Shot Execution)
 ```bash
-easyskillz export --target <path>     # copy skills + config to another project
+# All flags in one command - no interactive prompts
+easyskillz project sync --docs=yes --docs-strategy=unified --gitignore=full
+easyskillz skill remove my-skill --confirm
+easyskillz tool unregister cursor --mode=full --confirm
 ```
 
 ---
 
-## What `sync` Looks Like
+## What `project sync` Looks Like
 
 ```
-$ easyskillz sync
+$ easyskillz project sync
 
 Scanning for AI tools...
   ✓ Claude Code      (.claude/skills)
