@@ -6,6 +6,7 @@ const readline = require('readline');
 const registry = require('../registry');
 const wirer = require('../wirer');
 const { MANAGED_OPEN } = require('../docs/syncFolder');
+const { isAIAgent, showAIWarning } = require('../utils/detectAI');
 
 const META_SKILL = 'easyskillz-reference';
 
@@ -91,6 +92,11 @@ async function plan(cwd, toolIds, strategy, out, isTTY) {
   out('');
 
   if (isTTY) {
+    // Check for AI before prompting
+    if (isAIAgent()) {
+      showAIWarning('project sync');
+      process.exit(1);
+    }
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     const answer = await ask(rl, 'Proceed? [Y/n] ');
     rl.close();

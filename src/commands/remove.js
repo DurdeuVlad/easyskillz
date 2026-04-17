@@ -40,7 +40,7 @@ async function remove(skillName, cwd, opts = {}) {
   
   // If not confirmed and AI detected, show warning
   if (!confirm && isAIAgent()) {
-    showAIWarning('remove', `easyskillz remove ${skillName} --confirm`);
+    showAIWarning('skill remove');
     process.exit(1);
   }
   

@@ -79,7 +79,7 @@ async function sync({ cwd, json, isTTY, flags = {} }) {
     } else if (isTTY) {
       // Interactive mode - check for AI and prompt
       if (isAIAgent()) {
-        showAIWarning('project sync', 'easyskillz project sync --docs=<yes|no> --docs-strategy=<unified|tool-specific> --gitignore=<full|conflict-only|none>');
+        showAIWarning('project sync');
         process.exit(1);
       }
       const docsChoice = await promptDocsSetup();
@@ -145,7 +145,7 @@ async function sync({ cwd, json, isTTY, flags = {} }) {
     } else if (isTTY) {
       // Interactive mode - check for AI and prompt
       if (isAIAgent()) {
-        showAIWarning('project sync', 'easyskillz project sync --docs=<yes|no> --docs-strategy=<unified|tool-specific> --gitignore=<full|conflict-only|none>');
+        showAIWarning('project sync');
         process.exit(1);
       }
       const gitignoreChoice = await promptGitignoreSetup();

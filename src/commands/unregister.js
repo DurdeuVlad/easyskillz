@@ -45,7 +45,7 @@ async function unregister(toolId, cwd, opts = {}) {
   
   // If mode not specified and AI detected, show warning
   if (!selectedMode && isAIAgent()) {
-    showAIWarning('unregister', `easyskillz unregister ${toolId} --mode=full --confirm`);
+    showAIWarning('tool unregister');
     process.exit(1);
   }
   
@@ -88,7 +88,7 @@ async function unregister(toolId, cwd, opts = {}) {
   
   // If not confirmed and AI detected, show warning
   if (!confirm && isAIAgent()) {
-    showAIWarning('unregister', `easyskillz unregister ${toolId} --mode=${selectedMode} --confirm`);
+    showAIWarning('tool unregister');
     process.exit(1);
   }
   
