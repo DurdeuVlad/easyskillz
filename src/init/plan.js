@@ -7,7 +7,7 @@ const registry = require('../registry');
 const wirer = require('../wirer');
 const { MANAGED_OPEN } = require('../docs/syncFolder');
 
-const META_SKILL = '_easyskillz';
+const META_SKILL = 'easyskillz-reference';
 
 function ask(rl, question) {
   return new Promise((resolve) => rl.question(question, resolve));

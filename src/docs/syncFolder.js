@@ -25,7 +25,7 @@ easyskillz sync  # Regenerates symlinks and wires skills
 Skills live in \`.easyskillz/skills/\` (source of truth, committed to git).
 Tool directories like \`.claude/skills/\` are symlinks (gitignored, regenerated on sync).
 
-See the \`_easyskillz\` skill for complete documentation.
+See the \`easyskillz-reference\` skill for complete documentation.
 ${MANAGED_CLOSE}`;
 
 function writeInstruction(folderPath, toolEntry, isRootFolder = true) {
