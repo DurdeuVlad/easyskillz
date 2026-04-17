@@ -1,92 +1,114 @@
 #!/usr/bin/env node
 'use strict';
 
-const { sync, add, register, docs, exportCmd, list, deactivate, activate, remove, unregister } = require('../index');
+const { skill, tool, project, docs } = require('../index');
 
-const [,, cmd, ...rest] = process.argv;
-const json = rest.includes('--json');
-const help = rest.includes('--help') || rest.includes('-h');
-const confirm = rest.includes('--confirm');
-const modeArg = rest.find(a => a.startsWith('--mode='));
-const mode = modeArg ? modeArg.split('=')[1] : null;
-const args = rest.filter((a) => 
-  a !== '--json' && 
-  a !== '--help' && 
-  a !== '-h' && 
-  a !== '--confirm' && 
-  !a.startsWith('--mode=')
-);
+const [,, domain, action, ...rest] = process.argv;
 const cwd = process.cwd();
 const isTTY = Boolean(process.stdin.isTTY);
+
+// Parse flags
+function parseFlags(args) {
+  const flags = {
+    json: args.includes('--json'),
+    help: args.includes('--help') || args.includes('-h'),
+    confirm: args.includes('--confirm'),
+  };
+  
+  // Parse key=value flags
+  args.forEach(arg => {
+    if (arg.startsWith('--')) {
+      const match = arg.match(/^--([^=]+)(?:=(.+))?$/);
+      if (match) {
+        const [, key, value] = match;
+        if (value !== undefined) {
+          flags[key] = value;
+        }
+      }
+    }
+  });
+  
+  // Filter out flags to get positional args
+  const positional = args.filter(a => !a.startsWith('--'));
+  
+  return { flags, args: positional };
+}
+
+const { flags, args } = parseFlags(rest);
 
 const USAGE = `
 easyskillz — single source of truth for AI agent skills
 
 Usage:
-  easyskillz sync                       detect tools, wire all skills, re-wire after cloning
-  easyskillz add <name>                 create a new skill and wire it to all registered tools
-  easyskillz list                       list all skills (active and deactivated)
-  easyskillz deactivate <name>          deactivate a skill (soft delete, reversible)
-  easyskillz activate <name>            activate a deactivated skill
-  easyskillz remove <name> [--confirm]  permanently delete a skill
-  easyskillz register <tool>            add a tool and wire all existing skills to it
-  easyskillz unregister <tool> [--mode=<full|revert>] [--confirm]
-                                        remove a tool from the project
-  easyskillz docs <sync|list|add|remove> manage instruction files
-  easyskillz export --target <path>     copy skills + config to another project
+  easyskillz <domain> <action> [args] [flags]
 
-Options:
+Domains:
+  skill      Manage skills (add, remove, activate, deactivate, list)
+  tool       Manage AI tools (register, unregister, list)
+  project    Project operations (sync, export)
+  docs       Manage instruction files (sync, list, add, remove)
+
+Skill Commands:
+  easyskillz skill add <name>           create a new skill
+  easyskillz skill remove <name>        permanently delete a skill
+  easyskillz skill deactivate <name>    deactivate a skill (soft delete)
+  easyskillz skill activate <name>      activate a deactivated skill
+  easyskillz skill list                 list all skills
+
+Tool Commands:
+  easyskillz tool register <name>       add a tool to the project
+  easyskillz tool unregister <name>     remove a tool from the project
+  easyskillz tool list                  list registered tools
+
+Project Commands:
+  easyskillz project sync               detect tools, wire skills, setup project
+  easyskillz project export --target <path>  copy skills to another project
+
+Docs Commands:
+  easyskillz docs sync                  centralize instruction files
+  easyskillz docs list                  list managed instruction files
+
+Flags:
   --json                                machine-readable JSON output
-  --confirm                             skip confirmation prompts (for AI agents)
-  --mode=<full|revert>                  unregister mode: full delete or revert
+  --confirm                             skip confirmation prompts
+  --docs=<yes|no>                       manage docs (project sync)
+  --docs-strategy=<unified|tool-specific>  docs strategy (project sync)
+  --gitignore=<full|conflict-only|none>    gitignore strategy (project sync)
+  --mode=<full|revert>                  unregister mode (tool unregister)
+  --target=<path>                       target path (project export)
 
 Supported tools: claude, codex, cursor, windsurf, windsurf-workflows, copilot, gemini
 
-Run \`easyskillz sync\` after cloning a repo to re-wire skills on a new machine.
+Examples:
+  easyskillz project sync --docs=yes --docs-strategy=unified --gitignore=full
+  easyskillz skill add review-pr
+  easyskillz tool unregister cursor --mode=full --confirm
 `.trim();
 
 async function main() {
   try {
-    const validCmds = ['sync','add','list','deactivate','activate','remove','register','unregister','docs','export'];
-    if (!cmd || cmd === 'help' || cmd === '--help' || cmd === '-h' || (help && !validCmds.includes(cmd))) {
+    // Show help if no domain or help flag
+    if (!domain || domain === 'help' || domain === '--help' || domain === '-h' || flags.help) {
       process.stdout.write(USAGE + '\n');
       return;
     }
-    switch (cmd) {
-      case 'sync':
-        await sync({ cwd, args, json, isTTY });
+    
+    // Route to domain handlers
+    switch (domain) {
+      case 'skill':
+        await skill({ action, args, flags, cwd, isTTY });
         break;
-      case 'add':
-        await add({ cwd, args, json, isTTY });
+      case 'tool':
+        await tool({ action, args, flags, cwd, isTTY });
         break;
-      case 'list':
-        await list({ cwd, json });
+      case 'project':
+        await project({ action, args, flags, cwd, isTTY });
         break;
-      case 'deactivate':
-        await deactivate({ cwd, args, json });
-        break;
-      case 'activate':
-        await activate({ cwd, args, json });
-        break;
-      case 'remove':
-        await remove({ cwd, args, json, confirm });
-        break;
-      case 'register':
-        await register({ cwd, args, json, isTTY });
-        break;
-      case 'unregister':
-        await unregister({ cwd, args, json, mode, confirm });
-        break;
-      case 'docs': {
-        const subAction = args[0] || '';
-        await docs({ cwd, subAction, args: args.slice(1), json, isTTY });
-        break;
-      }
-      case 'export':
-        await exportCmd({ cwd, args, json, isTTY });
+      case 'docs':
+        await docs({ action, args, flags, cwd, isTTY });
         break;
       default:
-        process.stderr.write(`Error: unknown command "${cmd}"\n\n${USAGE}\n`);
+        process.stderr.write(`Error: unknown domain "${domain}"\n\n${USAGE}\n`);
         process.exit(1);
     }
   } catch (e) {

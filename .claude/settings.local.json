@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /c/Users/User/.claude/skills/audit-northstar/evals)",
+      "Bash(mkdir -p /c/Users/User/.claude/skills/audit-northstar/audit-northstar-workspace/iteration-1)"
+    ]
+  }
+}

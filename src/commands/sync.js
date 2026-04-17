@@ -10,9 +10,18 @@ const { scanAll } = require('../docs/scanInstructionFiles');
 const { centralize } = require('../docs/centralizeFiles');
 const { promptGitignoreSetup } = require('../gitignore/promptGitignoreSetup');
 const { updateGitignore } = require('../gitignore/updateGitignore');
+const { isAIAgent, showAIWarning } = require('../utils/detectAI');
 
-async function sync({ cwd, json, isTTY }) {
+async function sync({ cwd, json, isTTY, flags = {} }) {
   const out = json ? () => {} : (s) => process.stdout.write(s + '\n');
+  
+  // Extract flags for one-shot execution
+  const docsFlag = flags.docs; // 'yes' or 'no'
+  const docsStrategyFlag = flags['docs-strategy']; // 'unified' or 'tool-specific'
+  const gitignoreFlag = flags.gitignore; // 'full', 'conflict-only', or 'none'
+  
+  // If ANY flag is provided, we're in one-shot mode (no interactive prompts)
+  const hasAnyFlag = docsFlag !== undefined || docsStrategyFlag !== undefined || gitignoreFlag !== undefined;
 
   const { toolIds, strategy, existingConfig } = detect(cwd, out);
 
@@ -45,13 +54,45 @@ async function sync({ cwd, json, isTTY }) {
   // Docs management
   let cfg = config.read(cwd);
   
-  if (cfg.manageDocs === false && cfg.docsStrategy === null && isTTY) {
-    // First time - prompt for docs setup
-    const docsChoice = await promptDocsSetup();
+  if (cfg.manageDocs === false && cfg.docsStrategy === null) {
+    // First time - use flag or prompt
+    let manageDocs = false;
+    let docsStrategy = null;
     
-    if (docsChoice.manageDocs) {
+    if (hasAnyFlag) {
+      // One-shot mode - all flags required
+      if (docsFlag === undefined) {
+        out('Error: --docs=<yes|no> is required when using flags');
+        out('');
+        out('Usage: easyskillz project sync --docs=<yes|no> --docs-strategy=<unified|tool-specific> --gitignore=<full|conflict-only|none>');
+        process.exit(1);
+      }
+      
+      manageDocs = docsFlag === 'yes';
+      if (manageDocs) {
+        if (!docsStrategyFlag) {
+          out('Error: --docs=yes requires --docs-strategy=<unified|tool-specific>');
+          process.exit(1);
+        }
+        docsStrategy = docsStrategyFlag;
+      }
+    } else if (isTTY) {
+      // Interactive mode - check for AI and prompt
+      if (isAIAgent()) {
+        showAIWarning('project sync', 'easyskillz project sync --docs=<yes|no> --docs-strategy=<unified|tool-specific> --gitignore=<full|conflict-only|none>');
+        process.exit(1);
+      }
+      const docsChoice = await promptDocsSetup();
+      manageDocs = docsChoice.manageDocs;
+      docsStrategy = docsChoice.docsStrategy;
+    } else {
+      // Non-TTY, no flags - default to no
+      manageDocs = false;
+    }
+    
+    if (manageDocs) {
       cfg.manageDocs = true;
-      cfg.docsStrategy = docsChoice.docsStrategy;
+      cfg.docsStrategy = docsStrategy;
       config.write(cwd, cfg);
       
       out('');
@@ -90,13 +131,31 @@ async function sync({ cwd, json, isTTY }) {
   cfg = config.read(cwd);
   
   if (cfg.gitignoreStrategy === null) {
-    if (isTTY) {
+    let gitignoreStrategy = null;
+    
+    if (hasAnyFlag) {
+      // One-shot mode - all flags required
+      if (gitignoreFlag === undefined) {
+        out('Error: --gitignore=<full|conflict-only|none> is required when using flags');
+        out('');
+        out('Usage: easyskillz project sync --docs=<yes|no> --docs-strategy=<unified|tool-specific> --gitignore=<full|conflict-only|none>');
+        process.exit(1);
+      }
+      gitignoreStrategy = gitignoreFlag;
+    } else if (isTTY) {
+      // Interactive mode - check for AI and prompt
+      if (isAIAgent()) {
+        showAIWarning('project sync', 'easyskillz project sync --docs=<yes|no> --docs-strategy=<unified|tool-specific> --gitignore=<full|conflict-only|none>');
+        process.exit(1);
+      }
       const gitignoreChoice = await promptGitignoreSetup();
-      cfg.gitignoreStrategy = gitignoreChoice.gitignoreStrategy;
+      gitignoreStrategy = gitignoreChoice.gitignoreStrategy;
     } else {
-      // Non-TTY mode: default to 'full' (safest option)
-      cfg.gitignoreStrategy = 'full';
+      // Non-TTY, no flags - default to 'full'
+      gitignoreStrategy = 'full';
     }
+    
+    cfg.gitignoreStrategy = gitignoreStrategy;
     config.write(cwd, cfg);
   }
 
