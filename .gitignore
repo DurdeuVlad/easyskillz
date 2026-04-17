@@ -3,6 +3,10 @@ node_modules/
 .DS_Store
 Thumbs.db
 
+# QA testing directory
+.qa-temp/
+*.tgz
+
 # easyskillz — tool skill dirs are machine-local (symlinks or stubs)
 # run `easyskillz sync` after cloning to re-wire
 .claude/skills/
