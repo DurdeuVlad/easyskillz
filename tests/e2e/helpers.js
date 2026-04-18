@@ -50,9 +50,13 @@ function mockTool(repoPath, toolId) {
 /**
  * Run easyskillz CLI in a specific directory.
  */
-function runEZ(args, cwd) {
+function runEZ(args, cwd, env = {}) {
   try {
-    const output = execSync(`node "${BIN}" ${args}`, { cwd, encoding: 'utf8' });
+    const output = execSync(`node "${BIN}" ${args}`, { 
+      cwd, 
+      encoding: 'utf8',
+      env: { ...process.env, ...env }
+    });
     return { ok: true, output };
   } catch (e) {
     return { ok: false, output: e.stdout + e.stderr, status: e.status };

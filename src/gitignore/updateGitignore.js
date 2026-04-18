@@ -37,19 +37,32 @@ function updateGitignore(cwd, toolEntries, strategy) {
     // 2. Decide strategy for each base directory
     dirMap.forEach((managedSet, baseDir) => {
       const fullBaseDir = path.join(cwd, baseDir);
-      let switchSurgical = (strategy === 'smart'); // Smart is always surgical
+      let useSurgical = (strategy === 'smart'); // Smart is always surgical
 
       if (baseDir === '.github') {
-        switchSurgical = true;
-      } else if (strategy === 'full' && baseDir.startsWith('.')) {
-        // Full mode: usually blanket ignore root of hidden tool folders
-        switchSurgical = false;
+        useSurgical = true;
+      } else if (strategy === 'full' && baseDir.startsWith('.') && fs.existsSync(fullBaseDir)) {
+        // Full mode: blanket ignore root UNLESS unmanaged files found
+        try {
+          const files = fs.readdirSync(fullBaseDir);
+          for (const f of files) {
+            const relPath = `${baseDir}/${f}`;
+            const isManaged = Array.from(managedSet).some(m => {
+              return m === relPath || m.startsWith(relPath + '/');
+            });
+            if (!isManaged) {
+              useSurgical = true; // Smart switch!
+              break;
+            }
+          }
+        } catch {
+          useSurgical = true;
+        }
       } else if (!baseDir.startsWith('.')) {
-        // Non-hidden folders are always surgical
-        switchSurgical = true;
+        useSurgical = true;
       }
 
-      if (switchSurgical) {
+      if (useSurgical) {
         // Surgical: Add specific managed items only
         managedSet.forEach(m => {
           const isDir = m.includes('/skills') || m.includes('/workflows');

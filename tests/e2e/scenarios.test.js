@@ -59,13 +59,33 @@ describe('E2E Scenarios', () => {
     assert.ok(!gitignore.includes('hooks'), 'User hooks should NOT be ignored');
   });
 
+  test('Scenario 4: Smart Switch (Blanket to Surgical)', () => {
+    repoPath = setupRepo();
+    mockTool(repoPath, 'claude');
+    
+    // Step 1: Empty folder -> Blanket ignore
+    runEZ('project sync --confirm --gitignore=full --docs=no', repoPath);
+    let gitignore = fs.readFileSync(path.join(repoPath, '.gitignore'), 'utf8');
+    assert.ok(gitignore.match(/^\.claude\/$/m), 'Should use blanket ignore for empty tool folder');
+    
+    // Step 2: Add user file -> Switch to surgical
+    const customDir = path.join(repoPath, '.claude/custom');
+    fs.mkdirSync(customDir, { recursive: true });
+    fs.writeFileSync(path.join(customDir, 'script.sh'), 'echo 1', 'utf8');
+    const result = runEZ('project sync --confirm --docs=no --gitignore=full', repoPath); 
+    
+    gitignore = fs.readFileSync(path.join(repoPath, '.gitignore'), 'utf8');
+    assert.ok(!gitignore.match(/^\.claude\/$/m), 'Blanket ignore should be removed');
+    assert.ok(gitignore.includes('.claude/skills/'), 'Surgical ignore should be added');
+  });
+
   test('Scenario 5: Auto-Repair malformed skills (Gemini)', () => {
     repoPath = setupRepo();
     mockTool(repoPath, 'gemini');
     const skillPath = path.join(repoPath, '.easyskillz/skills/broken');
     fs.mkdirSync(skillPath, { recursive: true });
     fs.writeFileSync(path.join(skillPath, 'SKILL.md'), '# broken', 'utf8');
-    runEZ('project sync --confirm --docs=no', repoPath);
+    runEZ('project sync --confirm --docs=no --gitignore=smart', repoPath);
     const content = fs.readFileSync(path.join(skillPath, 'SKILL.md'), 'utf8');
     assert.ok(content.startsWith('---'), 'YAML frontmatter not injected');
   });
@@ -73,7 +93,7 @@ describe('E2E Scenarios', () => {
   test('Scenario 6: The Clean Break (Unregister Full)', () => {
     repoPath = setupRepo();
     mockTool(repoPath, 'claude');
-    runEZ('project sync --confirm --docs=no', repoPath);
+    runEZ('project sync --confirm --docs=no --gitignore=smart', repoPath);
     runEZ('tool unregister claude --confirm --mode=full', repoPath);
     assert.ok(!fs.existsSync(path.join(repoPath, '.claude/skills')), 'Skills folder should be deleted');
   });
@@ -81,7 +101,7 @@ describe('E2E Scenarios', () => {
   test('Scenario 7: The Reversible Break (Unregister Revert)', () => {
     repoPath = setupRepo();
     mockTool(repoPath, 'claude');
-    runEZ('project sync --confirm --docs=no', repoPath);
+    runEZ('project sync --confirm --docs=no --gitignore=smart', repoPath);
     runEZ('tool unregister claude --confirm --mode=revert', repoPath);
     assert.ok(fs.existsSync(path.join(repoPath, '.claude/skills')), 'Skills folder should remain');
   });
@@ -151,10 +171,12 @@ describe('E2E Scenarios', () => {
     repoPath = setupRepo();
     mockTool(repoPath, 'claude');
     runEZ('skill add test-skill', repoPath);
-    runEZ('project sync --confirm --docs=no', repoPath);
+    runEZ('project sync --confirm --docs=no --gitignore=smart', repoPath);
+    // Deactivate
     runEZ('skill deactivate test-skill', repoPath);
     assert.ok(!fs.existsSync(path.join(repoPath, '.claude/skills/test-skill')), 'Wired link should be removed');
     assert.ok(fs.existsSync(path.join(repoPath, '.easyskillz/skills/.test-skill.disabled')), 'Skill should be renamed');
+    // Reactivate
     runEZ('skill activate test-skill', repoPath);
     assert.ok(fs.existsSync(path.join(repoPath, '.claude/skills/test-skill')), 'Skill should be re-wired');
   });
@@ -196,5 +218,34 @@ describe('E2E Scenarios', () => {
     fs.mkdirSync(path.join(repoPath, '.claude'), { recursive: true });
     const result = runEZ('project sync --confirm --docs=no --gitignore=full', repoPath);
     assert.ok(result.output.includes('Claude Code'), 'Claude should be detected');
+  });
+
+  test('Scenario 19: Codex Explicit Test', () => {
+    repoPath = setupRepo();
+    mockTool(repoPath, 'codex');
+    runEZ('project sync --confirm --docs=no --gitignore=smart', repoPath);
+    const cfg = JSON.parse(fs.readFileSync(path.join(repoPath, '.easyskillz/easyskillz.json'), 'utf8'));
+    assert.ok(cfg.tools.includes('codex'), 'Codex not registered');
+  });
+
+  test('Scenario 20: AI Friendliness (JSON Output)', () => {
+    repoPath = setupRepo();
+    mockTool(repoPath, 'claude');
+    const result = runEZ('project sync --confirm --docs=no --gitignore=smart --json', repoPath);
+    assert.ok(result.ok, 'JSON sync failed: ' + result.output);
+    const data = JSON.parse(result.output);
+    assert.ok(data.ok, 'JSON ok field should be true');
+    assert.ok(data.tools.includes('claude'), 'JSON tools missing claude');
+  });
+
+  test('Scenario 21: Idempotency (Repeat Sync)', () => {
+    repoPath = setupRepo();
+    mockTool(repoPath, 'claude');
+    runEZ('project sync --confirm --docs=no --gitignore=smart', repoPath);
+    
+    // Run again
+    const result = runEZ('project sync --confirm --docs=no --gitignore=smart', repoPath);
+    assert.ok(result.ok, 'Second sync failed: ' + result.output);
+    assert.ok(result.output.includes('wired') || result.output.includes('already wired') || result.output.includes('Nothing to do'), 'Should handle repeat sync');
   });
 });
