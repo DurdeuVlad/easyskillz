@@ -21,12 +21,26 @@ function updateGitignore(cwd, toolEntries, strategy) {
   if (strategy === 'full') {
     const managedItems = new Set();
     toolEntries.forEach((e) => {
-      // 1. Surgical ignore of skills directory
-      managedItems.add(e.skillsDir + '/');
+      const parts = e.skillsDir.split('/');
+      const baseDir = parts[0];
       
-      // 2. Surgical ignore of tool config files (managed by easyskillz logic)
-      if (e.configFiles && e.configFiles.length > 0) {
-        e.configFiles.forEach((cf) => managedItems.add(cf));
+      if (baseDir === '.github') {
+        // Don't ignore all of .github (actions, etc)
+        managedItems.add(e.skillsDir + '/');
+        // Surgical ignore of tool config files (managed by easyskillz logic)
+        if (e.configFiles && e.configFiles.length > 0) {
+          e.configFiles.forEach((cf) => managedItems.add(cf));
+        }
+      } else if (baseDir.startsWith('.')) {
+        // Ignore root of hidden tool folders (.claude, .cursor, etc)
+        managedItems.add(baseDir + '/');
+      } else {
+        // Fallback to surgical for non-hidden or unexpected paths
+        managedItems.add(e.skillsDir + '/');
+        // Surgical ignore of tool config files
+        if (e.configFiles && e.configFiles.length > 0) {
+          e.configFiles.forEach((cf) => managedItems.add(cf));
+        }
       }
     });
     

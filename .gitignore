@@ -7,40 +7,13 @@ Thumbs.db
 .qa-temp/
 *.tgz
 
-# easyskillz — tool skill dirs are machine-local (symlinks or stubs)
-# run `easyskillz sync` after cloning to re-wire
-.claude/skills/
-.codex/skills/
-.cursor/skills/
-.windsurf/skills/
-.windsurf/workflows/
-.github/skills/
-.gemini/skills/
-
-# easyskillz — instruction file symlinks are machine-local
-# centralized source is in .easyskillz/docs/ (committed)
-# symlinks are created by `easyskillz sync` (gitignored)
-**/CLAUDE.md
-**/AGENTS.md
-**/GEMINI.md
-**/.cursorrules
-**/.windsurfrules
-**/copilot-instructions.md
-
 # easyskillz-start
 # strategy: full
-.claude/settings.json
-.claude/settings.local.json
-.claude/skills/
-.codex/config.json
-.codex/skills/
-.cursor/config.json
-.cursor/skills/
-.gemini/settings.json
-.gemini/skills/
-.windsurf/settings.json
-.windsurf/skills/
-.windsurf/workflows/
+.claude/
+.codex/
+.cursor/
+.gemini/
+.windsurf/
 **/CLAUDE.md
 **/AGENTS.md
 **/GEMINI.md
