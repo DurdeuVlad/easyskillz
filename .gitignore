@@ -3,20 +3,20 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# easyskillz — tool skill dirs are machine-local (symlinks or stubs)
-# run `easyskillz sync` after cloning to re-wire
-.claude/skills/
-.codex/skills/
-.cursor/skills/
-.windsurf/skills/
-.windsurf/workflows/
-.github/skills/
-.gemini/skills/
+# QA testing directory
+.qa-temp/
+*.tgz
 
-# easyskillz — instruction files are machine/tool-specific
-CLAUDE.md
-AGENTS.md
-GEMINI.md
-.cursorrules
-.windsurfrules
-.github/copilot-instructions.md
+# easyskillz-start
+# strategy: full
+.claude/settings.json
+.claude/settings.local.json
+.claude/skills/
+.codex/
+.cursor/
+.gemini/
+.windsurf/
+**/CLAUDE.md
+**/AGENTS.md
+**/GEMINI.md
+# easyskillz-end

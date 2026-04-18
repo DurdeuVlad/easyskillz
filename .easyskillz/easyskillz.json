@@ -1,8 +1,13 @@
 {
   "tools": [
     "claude",
+    "codex",
     "cursor",
-    "codex"
+    "gemini",
+    "windsurf"
   ],
-  "linkStrategy": "symlink"
+  "linkStrategy": "symlink",
+  "manageDocs": true,
+  "docsStrategy": "unified",
+  "gitignoreStrategy": "full"
 }

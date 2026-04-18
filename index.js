@@ -1,7 +1,8 @@
 'use strict';
 
 module.exports = {
-  sync:     require('./src/commands/sync'),
-  add:      require('./src/commands/add'),
-  register: require('./src/commands/register'),
+  skill:   require('./src/domains/skill'),
+  tool:    require('./src/domains/tool'),
+  project: require('./src/domains/project'),
+  docs:    require('./src/domains/docs'),
 };

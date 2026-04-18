@@ -1,6 +1,6 @@
 {
   "name": "easyskillz",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Single source of truth for AI agent skills across multiple tools",
   "main": "index.js",
   "bin": {
@@ -35,5 +35,15 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DurdeuVlad/easyskillz.git"
-  }
+  },
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "author": "",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/DurdeuVlad/easyskillz/issues"
+  },
+  "homepage": "https://github.com/DurdeuVlad/easyskillz#readme"
 }

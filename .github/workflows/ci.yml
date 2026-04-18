@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [ main, release/* ]
   pull_request:
-    branches: [master]
+    branches: [ main, release/* ]
 
 jobs:
   test:
@@ -12,15 +12,16 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [18.x, 20.x, 22.x]
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Run tests
-        run: npm test
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm install
+    - name: Run Unit Tests
+      run: npm test
+    - name: Run E2E Tests
+      run: node --test tests/e2e/scenarios.test.js

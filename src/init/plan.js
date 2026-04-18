@@ -5,8 +5,10 @@ const path = require('path');
 const readline = require('readline');
 const registry = require('../registry');
 const wirer = require('../wirer');
+const { MANAGED_OPEN } = require('../docs/syncFolder');
+const { isAIAgent, showAIWarning } = require('../utils/detectAI');
 
-const META_SKILL = '_easyskillz';
+const META_SKILL = 'easyskillz-reference';
 
 function ask(rl, question) {
   return new Promise((resolve) => rl.question(question, resolve));
@@ -14,7 +16,7 @@ function ask(rl, question) {
 
 // Scan for unwired skills, build action list, print plan, confirm with user.
 // Returns actions[] or null if user aborted.
-async function plan(cwd, toolIds, strategy, out, isTTY) {
+async function plan(cwd, toolIds, strategy, out, isTTY, skipConfirm = false) {
   const draftConfig = { tools: toolIds, linkStrategy: strategy };
   const unwired = wirer.scanUnwired(cwd, draftConfig, registry);
 
@@ -26,12 +28,13 @@ async function plan(cwd, toolIds, strategy, out, isTTY) {
         fs.statSync(path.join(skillsDir, n)).isDirectory()
       );
       for (const skill of allSkills) {
-        for (const toolId of toolIds) {
+        for (let toolId of toolIds) {
+          toolId = toolId.toLowerCase();
           const entry = registry[toolId];
           if (!entry) continue;
           const srcPath = path.resolve(cwd, '.easyskillz', 'skills', skill);
           const toolSkillsDir = path.resolve(cwd, entry.skillsDir);
-          const wired = wirer.isWired(toolSkillsDir, skill, srcPath, strategy);
+          const wired = wirer.isWired(toolSkillsDir, skill, srcPath, strategy, entry);
           out(`  ${skill.padEnd(20)} → ${entry.name}: ${wired ? '✓' : '✗ missing'}`);
         }
       }
@@ -45,39 +48,39 @@ async function plan(cwd, toolIds, strategy, out, isTTY) {
     actions.push({ type: 'wire', skill, entry });
   }
 
-  // Meta-skill
-  const metaSrc = path.join(cwd, '.easyskillz', 'skills', META_SKILL, 'SKILL.md');
-  if (!fs.existsSync(metaSrc)) {
-    actions.push({ type: 'meta-skill' });
-  }
+  // Meta-skill (always included to ensure it's up to date)
+  actions.push({ type: 'meta-skill' });
   const unwiredMetaToolIds = new Set(
-    unwired.filter((u) => u.skill === META_SKILL).map((u) => u.toolId)
+    unwired.filter((u) => u.skill === META_SKILL).map((u) => u.toolId.toLowerCase())
   );
-  for (const toolId of toolIds) {
+  for (let toolId of toolIds) {
+    toolId = toolId.toLowerCase();
     if (unwiredMetaToolIds.has(toolId)) continue;
     const entry = registry[toolId];
+    if (!entry) continue;
     const srcPath = path.resolve(cwd, '.easyskillz', 'skills', META_SKILL);
     const toolSkillsDir = path.resolve(cwd, entry.skillsDir);
-    if (!wirer.isWired(toolSkillsDir, META_SKILL, srcPath, strategy)) {
+    if (!wirer.isWired(toolSkillsDir, META_SKILL, srcPath, strategy, entry)) {
       actions.push({ type: 'wire-meta', entry });
     }
   }
 
-  // Instruction file appends
-  const instrLine = 'When creating a new skill, run: `easyskillz add <name>`';
-  for (const toolId of toolIds) {
+  // Instruction file managed blocks
+  for (let toolId of toolIds) {
+    toolId = toolId.toLowerCase();
     const entry = registry[toolId];
+    if (!entry) continue;
     const instrPath = path.resolve(cwd, entry.instructionFile);
     const exists = fs.existsSync(instrPath);
-    const hasLine = exists && fs.readFileSync(instrPath, 'utf8').includes(instrLine);
-    if (!hasLine) actions.push({ type: 'instruct', entry });
+    const hasManaged = exists && fs.readFileSync(instrPath, 'utf8').includes(MANAGED_OPEN);
+    if (!hasManaged) actions.push({ type: 'instruct', entry });
   }
 
-  // .gitignore
+  // .gitignore (will be handled separately in sync command based on strategy)
   const gitignorePath = path.join(cwd, '.gitignore');
   const gitignoreContent = fs.existsSync(gitignorePath)
     ? fs.readFileSync(gitignorePath, 'utf8') : '';
-  if (!gitignoreContent.includes('# easyskillz')) {
+  if (!gitignoreContent.includes('# easyskillz-start')) {
     actions.push({ type: 'gitignore' });
   }
 
@@ -89,11 +92,16 @@ async function plan(cwd, toolIds, strategy, out, isTTY) {
     if (a.type === 'meta-skill') out(`  [ create ]    .easyskillz/skills/${META_SKILL}/SKILL.md`);
     if (a.type === 'wire-meta')  out(`  [ wire ]      ${a.entry.skillsDir}/${META_SKILL}  →  .easyskillz/skills/${META_SKILL}`);
     if (a.type === 'instruct')   out(`  [ instruct ]  ${a.entry.instructionFile}`);
-    if (a.type === 'gitignore')  out(`  [ .gitignore ] add tool skill dirs`);
+    if (a.type === 'gitignore')  out(`  [ .gitignore ] configure based on your choice`);
   }
   out('');
 
-  if (isTTY) {
+  if (isTTY && !skipConfirm) {
+    // Check for AI before prompting
+    if (isAIAgent()) {
+      showAIWarning('project sync');
+      process.exit(1);
+    }
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     const answer = await ask(rl, 'Proceed? [Y/n] ');
     rl.close();

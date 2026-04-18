@@ -99,3 +99,38 @@ test('listSkills returns skill directory names', () => {
     cleanup(cwd);
   }
 });
+
+test('read returns manageDocs false by default', () => {
+  const cwd = tmpDir();
+  try {
+    const cfg = config.read(cwd);
+    assert.equal(cfg.manageDocs, false);
+    assert.equal(cfg.docsStrategy, null);
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('write and read manageDocs config', () => {
+  const cwd = tmpDir();
+  try {
+    config.write(cwd, { tools: ['claude'], linkStrategy: 'symlink', manageDocs: true, docsStrategy: 'unified' });
+    const cfg = config.read(cwd);
+    assert.equal(cfg.manageDocs, true);
+    assert.equal(cfg.docsStrategy, 'unified');
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('write and read tool-specific docsStrategy', () => {
+  const cwd = tmpDir();
+  try {
+    config.write(cwd, { tools: ['claude'], linkStrategy: 'symlink', manageDocs: true, docsStrategy: 'tool-specific' });
+    const cfg = config.read(cwd);
+    assert.equal(cfg.manageDocs, true);
+    assert.equal(cfg.docsStrategy, 'tool-specific');
+  } finally {
+    cleanup(cwd);
+  }
+});
