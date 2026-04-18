@@ -8,6 +8,6 @@ module.exports = function detect(cwd) {
   const entry = registry.cursor;
   const found =
     fs.existsSync(path.join(cwd, entry.skillsDir)) ||
-    fs.existsSync(path.join(cwd, entry.detectionMarker));
+    entry.detectionMarkers.some((marker) => fs.existsSync(path.join(cwd, marker)));
   return { id: entry.id, found, entry };
 };

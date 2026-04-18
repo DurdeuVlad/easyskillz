@@ -24,11 +24,11 @@ mytool: {
   name: 'My Tool',
   skillsDir: '.mytool/skills',
   instructionFile: '.mytool/instructions.md', // file easyskillz appends the hint line to
-  detectionMarker: '.mytool',                 // tool-specific path used ONLY for detection
+  detectionMarkers: ['.mytool'],               // tool-specific path(s) used ONLY for detection
 },
 ```
 
-`detectionMarker` must be a path that is **unique to this tool** — never a file shared with other tools (e.g. `AGENTS.md` is shared by Codex, Cursor, and Windsurf and must not be used as a detection marker).
+`detectionMarkers` must be paths that are **unique to this tool** — never a file shared with other tools (e.g. `AGENTS.md` is shared by Codex, Cursor, and Windsurf and must not be used as a detection marker).
 
 ### Step 2 — Create a detector
 
@@ -45,7 +45,7 @@ module.exports = function detect(cwd) {
   const entry = registry.mytool;
   const found =
     fs.existsSync(path.join(cwd, entry.skillsDir)) ||
-    fs.existsSync(path.join(cwd, entry.detectionMarker));
+    entry.detectionMarkers.some((marker) => fs.existsSync(path.join(cwd, marker)));
   return { id: entry.id, found, entry };
 };
 ```

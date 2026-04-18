@@ -8,7 +8,7 @@ const REGISTRY = {
     name: 'Claude Code',
     skillsDir: '.claude/skills',
     instructionFile: 'CLAUDE.md',
-    detectionMarker: '.claude/settings.json', // auto-created by Claude Code on first run
+    detectionMarkers: ['.claude/settings.json', '.claude'], // auto-created or just the folder
     configFiles: ['.claude/settings.local.json', '.claude/settings.json'],
   },
   codex: {
@@ -16,7 +16,7 @@ const REGISTRY = {
     name: 'Codex',
     skillsDir: '.codex/skills',
     instructionFile: 'AGENTS.md',
-    detectionMarker: '.codex',         // tool-specific dir, not shared AGENTS.md
+    detectionMarkers: ['.codex'],         // tool-specific dir
     configFiles: ['.codex/config.json'],
   },
   cursor: {
@@ -24,7 +24,7 @@ const REGISTRY = {
     name: 'Cursor',
     skillsDir: '.cursor/skills',
     instructionFile: 'AGENTS.md',
-    detectionMarker: '.cursor',        // tool-specific dir, not shared AGENTS.md
+    detectionMarkers: ['.cursor'],        // tool-specific dir
     configFiles: ['.cursor/config.json'],
   },
   windsurf: {
@@ -32,7 +32,7 @@ const REGISTRY = {
     name: 'Windsurf',
     skillsDir: '.windsurf/skills',
     instructionFile: 'AGENTS.md',
-    detectionMarker: '.windsurf',       // .windsurf/ folder created by Windsurf IDE on project open
+    detectionMarkers: ['.windsurf'],       // folder created on project open
     configFiles: ['.windsurf/settings.json'],
     // Windsurf supports both skills (folder-based) and workflows (flat .md files)
     additionalWiring: [
@@ -47,7 +47,7 @@ const REGISTRY = {
     name: 'Windsurf Workflows',
     skillsDir: '.windsurf/workflows',
     instructionFile: 'AGENTS.md',
-    detectionMarker: '.windsurf/workflows', // only present when user has workflows
+    detectionMarkers: ['.windsurf/workflows', '.windsurf'], // workflows dir or root folder
     type: 'workflows',                 // wirer: flat .md files, not skill folders
     configFiles: ['.windsurf/settings.json'],
   },
@@ -56,7 +56,7 @@ const REGISTRY = {
     name: 'GitHub Copilot',
     skillsDir: '.github/skills',
     instructionFile: '.github/copilot-instructions.md',
-    detectionMarker: '.github/copilot-instructions.md', // unique to Copilot
+    detectionMarkers: ['.github/copilot-instructions.md', '.github/skills'], // unique files only, not root .github
     configFiles: [],
   },
   gemini: {
@@ -64,7 +64,7 @@ const REGISTRY = {
     name: 'Gemini CLI',
     skillsDir: '.gemini/skills',
     instructionFile: 'GEMINI.md',
-    detectionMarker: '.gemini/settings.json', // auto-created by Gemini CLI on first run
+    detectionMarkers: ['.gemini/settings.json', '.gemini'], // auto-created or just the folder
     configFiles: ['.gemini/settings.json'],
   },
 };
