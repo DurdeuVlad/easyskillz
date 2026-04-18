@@ -9,7 +9,9 @@ Thumbs.db
 
 # easyskillz-start
 # strategy: full
-.claude/
+.claude/settings.json
+.claude/settings.local.json
+.claude/skills/
 .codex/
 .cursor/
 .gemini/

@@ -75,11 +75,13 @@ function ensureValidSkill(skillPath, skillName) {
 // Wire a single skill into a tool's skills directory.
 // For workflow-type tools, wires SKILL.md as a flat .md file (skill-name.md).
 // Returns 'wired' | 'already'
-function wireSkill(skillName, toolEntry, cwd, strategy) {
+function wireSkill(skillName, toolEntry, cwd, strategy, skipAutoRepair = false) {
   const srcPath = path.resolve(cwd, '.easyskillz', 'skills', skillName);
 
   // Auto-repair source skill format if needed
-  ensureValidSkill(srcPath, skillName);
+  if (!skipAutoRepair) {
+    ensureValidSkill(srcPath, skillName);
+  }
 
   const toolSkillsDir = path.resolve(cwd, toolEntry.skillsDir);
   const isWorkflow = toolEntry.type === 'workflows';
@@ -142,32 +144,32 @@ function stubContent(skillName) {
 }
 
 // Wire a skill to all locations for a tool (primary + additional wiring).
-// Returns array of results: [{ location: string, result: 'wired'|'already' }, ...]
-function wireSkillToAllLocations(skillName, toolEntry, cwd, strategy) {
+// Wire a single skill to all supported locations for a tool (e.g. skills and workflows).
+function wireSkillToAllLocations(skillName, toolEntry, cwd, strategy, skipAutoRepair = false) {
   const results = [];
-  
+
   // Wire to primary location
   results.push({
     location: toolEntry.skillsDir,
-    result: wireSkill(skillName, toolEntry, cwd, strategy),
+    result: wireSkill(skillName, toolEntry, cwd, strategy, skipAutoRepair),
   });
-  
+
   // Wire to additional locations (e.g., Windsurf workflows)
   if (toolEntry.additionalWiring) {
     for (const additionalEntry of toolEntry.additionalWiring) {
       const combinedEntry = { ...toolEntry, ...additionalEntry };
       results.push({
         location: additionalEntry.skillsDir,
-        result: wireSkill(skillName, combinedEntry, cwd, strategy),
+        result: wireSkill(skillName, combinedEntry, cwd, strategy, skipAutoRepair),
       });
     }
   }
-  
+
   return results;
 }
 
 // Wire all skills in .easyskillz/skills/ to a single tool.
-function wireAllSkills(toolEntry, cwd, strategy) {
+function wireAllSkills(toolEntry, cwd, strategy, skipAutoRepair = false) {
   const skillsDir = path.join(cwd, '.easyskillz', 'skills');
   if (!fs.existsSync(skillsDir)) return [];
   const skills = fs.readdirSync(skillsDir).filter((n) =>
@@ -175,7 +177,7 @@ function wireAllSkills(toolEntry, cwd, strategy) {
   );
   return skills.map((name) => ({
     skill: name,
-    results: wireSkillToAllLocations(name, toolEntry, cwd, strategy),
+    results: wireSkillToAllLocations(name, toolEntry, cwd, strategy, skipAutoRepair),
   }));
 }
 

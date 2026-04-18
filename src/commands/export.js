@@ -125,10 +125,12 @@ async function exportCmd({ cwd, args, json, isTTY }) {
   
   const out = json ? () => {} : console.log;
   const detectionResult = detect(resolvedTarget, out);
-  const actions = await plan(resolvedTarget, detectionResult.toolIds, detectionResult.strategy, out, false);
+  // Truly disable auto-repair during export to maintain idempotency in target
+  const skipAutoRepair = true;
+  const actions = await plan(resolvedTarget, detectionResult.toolIds, detectionResult.strategy, out, false, true);
   
   if (actions && actions.length > 0) {
-    execute(resolvedTarget, detectionResult.toolIds, detectionResult.strategy, actions, out);
+    execute(resolvedTarget, detectionResult.toolIds, detectionResult.strategy, actions, out, skipAutoRepair);
   }
   
   if (json) {

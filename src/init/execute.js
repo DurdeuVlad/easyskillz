@@ -122,13 +122,14 @@ const META_CONTENT = [
   '5. **Run `sync` after cloning** — Regenerates symlinks for your machine',
 ].join('\n') + '\n';
 
-function execute(cwd, toolIds, strategy, actions, out) {
+function execute(cwd, toolIds, strategy, actions, out, skipAutoRepair = false) {
   const existingCfg = config.read(cwd);
   config.write(cwd, { 
     tools: toolIds, 
     linkStrategy: strategy,
     manageDocs: existingCfg.manageDocs,
-    docsStrategy: existingCfg.docsStrategy
+    docsStrategy: existingCfg.docsStrategy,
+    gitignoreStrategy: existingCfg.gitignoreStrategy
   });
 
   const metaDir = path.join(cwd, '.easyskillz', 'skills', META_SKILL);
@@ -140,7 +141,7 @@ function execute(cwd, toolIds, strategy, actions, out) {
 
   for (const a of actions.filter((a) => a.type === 'wire' || a.type === 'wire-meta')) {
     const skillName = a.type === 'wire' ? a.skill : META_SKILL;
-    const results = wirer.wireSkillToAllLocations(skillName, a.entry, cwd, strategy);
+    const results = wirer.wireSkillToAllLocations(skillName, a.entry, cwd, strategy, skipAutoRepair);
     const anyWired = results.some(r => r.result !== 'already');
     if (anyWired) out(`  ✓ Wired ${skillName} → ${a.entry.name}`);
   }
