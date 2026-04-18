@@ -8,7 +8,7 @@ const REGISTRY = {
     name: 'Claude Code',
     skillsDir: '.claude/skills',
     instructionFile: 'CLAUDE.md',
-    detectionMarkers: ['.claude/settings.json', '.claude'], // auto-created or just the folder
+    detectionMarkers: ['.claude/settings.json', '.claude', 'CLAUDE.md'], // auto-created, folder or instruction file
     configFiles: ['.claude/settings.local.json', '.claude/settings.json'],
   },
   codex: {
@@ -64,7 +64,7 @@ const REGISTRY = {
     name: 'Gemini CLI',
     skillsDir: '.gemini/skills',
     instructionFile: 'GEMINI.md',
-    detectionMarkers: ['.gemini/settings.json', '.gemini'], // auto-created or just the folder
+    detectionMarkers: ['.gemini/settings.json', '.gemini', 'GEMINI.md'], // folder or instruction file
     configFiles: ['.gemini/settings.json'],
   },
 };

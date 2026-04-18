@@ -170,6 +170,16 @@ easyskillz sync   ← detects their tools, wires all skills automatically
 
 No merge conflicts on tool config. No PRs blocked because someone uses a different editor. The skill content is the only thing that matters — and that's exactly what gets shared.
 
+## Automated Behaviors
+
+easyskillz is designed to "just work." It handles several complex AI tool behaviors automatically:
+
+- **Windsurf Dual-Wiring**: Windsurf uses both directories (for Cascade) and flat files (for Slash commands). Registration wires skills to both `.windsurf/skills/` and `.windsurf/workflows/` automatically.
+- **Skill Auto-Repair**: Gemini CLI requires specific YAML frontmatter in `SKILL.md`. easyskillz detects missing metadata and auto-injects it during `sync` to ensure your skills are always discoverable by all AI agents.
+- **Surgical Gitignore**: When using the `smart` strategy (recommended), easyskillz surgically ignores only the files it manages (like symlinks and settings). Your custom tool files (hooks, scripts, logs) stay tracked by git.
+- **Robust Detection**: Tools are detected via multiple markers — whether it's a config file, an instruction file, or just the root folder, easyskillz will find it.
+- **Normalization**: Tool IDs are case-insensitive. `easyskillz tool register CurSor` works exactly like `cursor`.
+
 ---
 
 ## Supported Tools
@@ -187,7 +197,7 @@ No merge conflicts on tool config. No PRs blocked because someone uses a differe
 
 ## How Wiring Works
 
-easyskillz probes symlink support on your machine automatically. It also **auto-repairs skill formats**: if a skill is missing the required Gemini CLI frontmatter, easyskillz adds it automatically during sync.
+easyskillz probes symlink support on your machine automatically. 
 
 ```
 SYMLINKS AVAILABLE   ████████████████  →  uses symlinks (always in sync)
@@ -201,7 +211,22 @@ SYMLINKS UNAVAILABLE ████████████████  →  crea
 Read the actual skill from: .easyskillz/skills/review-pr/SKILL.md
 ```
 
-No silent failures. No copies getting out of sync on machines that support symlinks.
+**Workflow (Windsurf)** — a flat `.windsurf/workflows/review-pr.md` file that mirrors the content of your skill.
+
+No silent failures. No copies getting out of sync.
+
+---
+
+## Gitignore Strategies
+
+Manage your project's `.gitignore` block automatically:
+
+- **smart** (recommended) — Surgical ignore. Only ignores managed skills/configs, keeps your custom files tracked.
+- **full** — Blanket ignore root tool folders. Cleanest repo, but may hide custom files in tool dirs.
+- **minimal** — Only ignore files that might cause merge conflicts.
+- **none** — Manual management.
+
+easyskillz uses a managed block (`# easyskillz-start` ... `# easyskillz-end`) so it can update its rules as you add more tools.
 
 ---
 
