@@ -15,18 +15,27 @@ function parseFlags(args) {
     confirm: args.includes('--confirm'),
   };
   
-  // Parse key=value flags
-  args.forEach(arg => {
+  // Parse key=value flags and handle space-separated values for known flags
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
     if (arg.startsWith('--')) {
       const match = arg.match(/^--([^=]+)(?:=(.+))?$/);
       if (match) {
         const [, key, value] = match;
         if (value !== undefined) {
           flags[key] = value;
+        } else {
+          // Check if next arg is a value (not another flag)
+          if (i + 1 < args.length && !args[i+1].startsWith('--')) {
+            flags[key] = args[i+1];
+            i++; // Skip next arg
+          } else {
+            flags[key] = true;
+          }
         }
       }
     }
-  });
+  }
   
   // Filter out flags to get positional args
   const positional = args.filter(a => !a.startsWith('--'));
