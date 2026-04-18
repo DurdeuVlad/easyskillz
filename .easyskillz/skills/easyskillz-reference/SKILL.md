@@ -96,6 +96,12 @@ This regenerates all symlinks and wires skills to your local AI tools.
 .cursor/skills/     ← Symlinks (gitignored, regenerated on sync)
 ```
 
+## Gitignore Strategies
+
+- **full** — Blanket ignore tool folders (cleanest repo, but hides your hooks/custom files)
+- **smart** — Surgical ignore (only ignores managed skills/configs, keeps your custom files tracked)
+- **minimal** — Only ignore files that might cause merge conflicts
+
 ## Best Practices
 
 1. **Always use `easyskillz add`** — Never create skills manually

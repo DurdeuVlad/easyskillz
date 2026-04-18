@@ -18,33 +18,50 @@ function updateGitignore(cwd, toolEntries, strategy) {
   lines.push(START_MARKER);
   lines.push(`# strategy: ${strategy}`);
 
-  if (strategy === 'full') {
-    const managedItems = new Set();
+  if (strategy === 'full' || strategy === 'smart') {
+    // 1. Group managed items by their base directory (e.g., ".claude")
+    const dirMap = new Map();
     toolEntries.forEach((e) => {
       const parts = e.skillsDir.split('/');
       const baseDir = parts[0];
+      if (!dirMap.has(baseDir)) dirMap.set(baseDir, new Set());
       
+      const managed = dirMap.get(baseDir);
+      managed.add(e.skillsDir);
+      if (e.configFiles) e.configFiles.forEach(cf => managed.add(cf));
+      if (e.additionalWiring) e.additionalWiring.forEach(aw => managed.add(aw.skillsDir));
+    });
+
+    const linesToIgnore = new Set();
+    
+    // 2. Decide strategy for each base directory
+    dirMap.forEach((managedSet, baseDir) => {
+      const fullBaseDir = path.join(cwd, baseDir);
+      let switchSurgical = (strategy === 'smart'); // Smart is always surgical
+
       if (baseDir === '.github') {
-        // Don't ignore all of .github (actions, etc)
-        managedItems.add(e.skillsDir + '/');
-        // Surgical ignore of tool config files (managed by easyskillz logic)
-        if (e.configFiles && e.configFiles.length > 0) {
-          e.configFiles.forEach((cf) => managedItems.add(cf));
-        }
-      } else if (baseDir.startsWith('.')) {
-        // Ignore root of hidden tool folders (.claude, .cursor, etc)
-        managedItems.add(baseDir + '/');
+        switchSurgical = true;
+      } else if (strategy === 'full' && baseDir.startsWith('.')) {
+        // Full mode: usually blanket ignore root of hidden tool folders
+        switchSurgical = false;
+      } else if (!baseDir.startsWith('.')) {
+        // Non-hidden folders are always surgical
+        switchSurgical = true;
+      }
+
+      if (switchSurgical) {
+        // Surgical: Add specific managed items only
+        managedSet.forEach(m => {
+          const isDir = m.includes('/skills') || m.includes('/workflows');
+          linesToIgnore.add(isDir ? m + '/' : m);
+        });
       } else {
-        // Fallback to surgical for non-hidden or unexpected paths
-        managedItems.add(e.skillsDir + '/');
-        // Surgical ignore of tool config files
-        if (e.configFiles && e.configFiles.length > 0) {
-          e.configFiles.forEach((cf) => managedItems.add(cf));
-        }
+        // Blanket: Ignore root of tool folder
+        linesToIgnore.add(baseDir + '/');
       }
     });
-    
-    lines.push(...Array.from(managedItems).sort());
+
+    lines.push(...Array.from(linesToIgnore).sort());
     
     // 3. Surgical ignore of instruction files
     const instrFiles = [...new Set(toolEntries.map((e) => e.instructionFile))];
@@ -55,7 +72,7 @@ function updateGitignore(cwd, toolEntries, strategy) {
         lines.push('**/' + file);
       }
     });
-  } else if (strategy === 'conflict-only') {
+  } else if (strategy === 'minimal') {
     const configFiles = new Set();
     toolEntries.forEach((e) => {
       if (e.configFiles && e.configFiles.length > 0) {

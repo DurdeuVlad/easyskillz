@@ -98,7 +98,8 @@ class BaseCommand {
 
     // Interactive mode
     if (this.isTTY) {
-      return await this.prompt(question, commandName);
+      const q = typeof question === 'function' ? question() : question;
+      return await this.prompt(q, commandName);
     }
 
     // Non-TTY, no flag - use default

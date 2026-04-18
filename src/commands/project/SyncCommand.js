@@ -130,19 +130,29 @@ class SyncCommand extends BaseCommand {
     let cfg = config.read(this.cwd);
     
     if (cfg.gitignoreStrategy === null) {
-      // Get strategy
       const gitignoreAnswer = await this.getFlagOrPrompt(
         'gitignore',
-        'Gitignore strategy? [1=full, 2=conflict-only, 3=none]: ',
+        () => {
+          this.out('');
+          this.out('Choose Gitignore Strategy:');
+          this.out('  1. full     - Blanket ignore tool folders (cleanest repo, but hides your hooks/custom files)');
+          this.out('  2. smart    - Surgical ignore (only ignores managed skills/configs, keeps your custom files tracked)');
+          this.out('  3. minimal  - Only ignore files that might cause merge conflicts');
+          this.out('  4. none     - Manual management');
+          this.out('');
+          return 'Strategy? [1=full, 2=smart (recommended), 3=minimal, 4=none]: ';
+        },
         'project sync',
-        'full'
+        'smart'
       );
 
       let gitignoreStrategy;
       if (gitignoreAnswer === '1' || gitignoreAnswer === 'full') {
         gitignoreStrategy = 'full';
-      } else if (gitignoreAnswer === '2' || gitignoreAnswer === 'conflict-only') {
-        gitignoreStrategy = 'conflict-only';
+      } else if (gitignoreAnswer === '2' || gitignoreAnswer === 'smart') {
+        gitignoreStrategy = 'smart';
+      } else if (gitignoreAnswer === '3' || gitignoreAnswer === 'minimal' || gitignoreAnswer === 'conflict-only') {
+        gitignoreStrategy = 'minimal';
       } else {
         gitignoreStrategy = 'none';
       }
@@ -152,7 +162,7 @@ class SyncCommand extends BaseCommand {
     }
 
     // Apply gitignore if needed
-    if (actions.some((a) => a.type === 'gitignore') && cfg.gitignoreStrategy) {
+    if (cfg.gitignoreStrategy && cfg.gitignoreStrategy !== 'none') {
       const toolEntries = toolIds.map((id) => registry[id]).filter(Boolean);
       const result = updateGitignore(this.cwd, toolEntries, cfg.gitignoreStrategy);
       
