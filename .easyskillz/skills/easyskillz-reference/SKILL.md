@@ -1,3 +1,7 @@
+---
+name: easyskillz-reference
+description: Documentation and best practices for using easyskillz to manage AI agent skills.
+---
 # easyskillz — Skill Management System
 
 This project uses **easyskillz** to manage AI agent skills across multiple tools.

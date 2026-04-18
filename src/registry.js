@@ -34,6 +34,13 @@ const REGISTRY = {
     instructionFile: 'AGENTS.md',
     detectionMarker: '.windsurf',       // .windsurf/ folder created by Windsurf IDE on project open
     configFiles: ['.windsurf/settings.json'],
+    // Windsurf supports both skills (folder-based) and workflows (flat .md files)
+    additionalWiring: [
+      {
+        skillsDir: '.windsurf/workflows',
+        type: 'workflows',  // flat .md files instead of folders
+      },
+    ],
   },
   'windsurf-workflows': {
     id: 'windsurf-workflows',

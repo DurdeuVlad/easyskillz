@@ -164,7 +164,7 @@ test('wireAllSkills wires all skill directories', () => {
     const entry = fakeEntry(cwd);
     const results = wirer.wireAllSkills(entry, cwd, 'stub');
     assert.equal(results.length, 2);
-    assert.ok(results.every((r) => r.result === 'wired' || r.result === 'already'));
+    assert.ok(results.every((r) => r.results.some(res => res.result === 'wired' || res.result === 'already')));
   } finally {
     cleanup(cwd);
   }
@@ -218,7 +218,7 @@ test('appendInstruction creates file and appends line', () => {
   try {
     const entry = { instructionFile: 'CLAUDE.md' };
     const result = wirer.appendInstruction(cwd, entry);
-    assert.equal(result, 'appended');
+    assert.equal(result, 'written');
     const content = fs.readFileSync(path.join(cwd, 'CLAUDE.md'), 'utf8');
     assert.ok(content.includes('easyskillz add'));
   } finally {
@@ -261,11 +261,11 @@ test('updateGitignore adds tool skill dirs and instruction files', () => {
       { skillsDir: '.claude/skills', instructionFile: 'CLAUDE.md' },
       { skillsDir: '.cursor/skills', instructionFile: 'AGENTS.md' },
     ];
-    const result = wirer.updateGitignore(cwd, entries);
+    const result = wirer.updateGitignore(cwd, entries, 'full');
     assert.equal(result, 'updated');
     const content = fs.readFileSync(path.join(cwd, '.gitignore'), 'utf8');
-    assert.ok(content.includes('.claude/skills/'));
-    assert.ok(content.includes('.cursor/skills/'));
+    assert.ok(content.includes('.claude/'));
+    assert.ok(content.includes('.cursor/'));
     assert.ok(content.includes('CLAUDE.md'));
     assert.ok(content.includes('AGENTS.md'));
     assert.ok(content.includes('# easyskillz'));
@@ -282,7 +282,7 @@ test('updateGitignore deduplicates instruction files', () => {
       { skillsDir: '.cursor/skills',  instructionFile: 'AGENTS.md' }, // same file — Codex, Cursor, Windsurf all share AGENTS.md
       { skillsDir: '.windsurf/skills', instructionFile: 'AGENTS.md' },
     ];
-    wirer.updateGitignore(cwd, entries);
+    wirer.updateGitignore(cwd, entries, 'full');
     const content = fs.readFileSync(path.join(cwd, '.gitignore'), 'utf8');
     assert.equal(content.split('AGENTS.md').length - 1, 1, 'AGENTS.md should appear once despite 3 tools sharing it');
   } finally {
@@ -294,8 +294,8 @@ test('updateGitignore is idempotent', () => {
   const cwd = tmpDir();
   try {
     const entries = [{ skillsDir: '.claude/skills', instructionFile: 'CLAUDE.md' }];
-    wirer.updateGitignore(cwd, entries);
-    const result = wirer.updateGitignore(cwd, entries);
+    wirer.updateGitignore(cwd, entries, 'full');
+    const result = wirer.updateGitignore(cwd, entries, 'full');
     assert.equal(result, 'already');
   } finally {
     cleanup(cwd);

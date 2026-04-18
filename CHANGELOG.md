@@ -6,6 +6,14 @@ Format: `## [version] — YYYY-MM-DD` · sections: `Added`, `Fixed`, `Changed`, 
 
 ---
 
+## [2.0.0-alpha.3] — 2026-04-18
+
+### Added
+- **Windsurf Dual Wiring** — Windsurf now automatically wires skills to both `.windsurf/skills/` (folders) and `.windsurf/workflows/` (flat `.md` files) under a single tool registration
+- **Case-Insensitive Registration** — `easyskillz tool register WindSurf` now normalizes to `windsurf` correctly
+
+---
+
 ## [2.0.0-alpha.2] — 2026-04-16
 
 ### Added
@@ -34,32 +42,37 @@ Format: `## [version] — YYYY-MM-DD` · sections: `Added`, `Fixed`, `Changed`, 
 
 ---
 
-## [0.2.0] — 2026-04-16
+## [0.2.0] — 2026-04-18
 
 ### Added
-- **Centralized instruction file management** — easyskillz now centralizes instruction files (`CLAUDE.md`, `AGENTS.md`, etc.) in `.easyskillz/docs/` and creates symlinks at expected locations
-- **Two strategies**: Choose between `unified` (one INSTRUCTION.md per folder for all tools) or `tool-specific` (separate file per tool)
-- **Auto-detection** — `easyskillz sync` automatically scans entire repo for instruction files and centralizes them
-- **All-in or all-out** — Single opt-in decision during first sync, then fully automated
-- `easyskillz docs sync` — force re-scan and centralize any new instruction files
-- `easyskillz docs list` — show centralized instruction files
-- `easyskillz export --target <path>` — copy skills + config to another project and auto-sync
-- `manageDocs` config field — boolean flag for all-in docs management
-- `docsStrategy` config field — `unified` or `tool-specific` strategy choice
-- North Star Principles in CONTRIBUTING.md — design philosophy for all features
-- `audit-northstar` skill — autonomous North Star principle compliance checking (dev-only)
+- **Skill Auto-Repair** — Automatically injects required Gemini CLI frontmatter into `SKILL.md` if missing.
+- **Windsurf Dual Wiring** — Single registration wires both skills and workflows.
+- **Surgical Gitignore Management** — Managed block with markers. Surgically ignores only managed items (skills folders and config files) while preserving unmanaged user files (hooks, scripts) even in tool directories. Protects `.github/` root.
+- **Centralized instruction file management** — easyskillz now centralizes instruction files (`CLAUDE.md`, `AGENTS.md`, etc.) in `.easyskillz/docs/` and creates symlinks at expected locations.
+- **Two strategies**: Choose between `unified` (one INSTRUCTION.md per folder for all tools) or `tool-specific` (separate file per tool).
+- **Auto-detection** — `easyskillz sync` automatically scans entire repo for instruction files and centralizes them.
+- **All-in or all-out** — Single opt-in decision during first sync, then fully automated.
+- `easyskillz docs sync` — force re-scan and centralize any new instruction files.
+- `easyskillz docs list` — show centralized instruction files.
+- `easyskillz export --target <path>` — copy skills + config to another project and auto-sync.
+- `manageDocs` config field — boolean flag for all-in docs management.
+- `docsStrategy` config field — `unified` or `tool-specific` strategy choice.
+- North Star Principles in CONTRIBUTING.md — design philosophy for all features.
+- `audit-northstar` skill — autonomous North Star principle compliance checking (dev-only).
 
 ### Changed
-- `easyskillz sync` prompts for docs management on first run
-- Instruction files are now symlinks (gitignored) pointing to centralized sources in `.easyskillz/docs/` (committed)
-- Meta-skill (`_easyskillz`) always updated on sync to keep documentation current
-- Meta-skill content expanded with all v0.2.0 commands
-- Hierarchical instruction files supported (e.g., `/CLAUDE.md`, `/src/CLAUDE.md`, `/src/api/CLAUDE.md`)
+- `easyskillz sync` prompts for docs management on first run.
+- Instruction files are now symlinks (gitignored) pointing to centralized sources in `.easyskillz/docs/` (committed).
+- Meta-skill (`_easyskillz`) always updated on sync to keep documentation current.
+- Meta-skill content expanded with all v0.2.0 commands.
+- Hierarchical instruction files supported (e.g., `/CLAUDE.md`, `/src/CLAUDE.md`, `/src/api/CLAUDE.md`).
+- Tool IDs normalized to lowercase for registration and lookups.
 
 ### Breaking
-- `wirer.appendInstruction` deprecated (kept for backward compatibility)
-- `docsFolders` config removed — replaced with `manageDocs` + `docsStrategy`
-- `easyskillz docs add/remove` commands removed — auto-detection handles everything
+- `wirer.appendInstruction` deprecated (kept for backward compatibility).
+- `docsFolders` config removed — replaced with `manageDocs` + `docsStrategy`.
+- `easyskillz docs add/remove` commands removed — auto-detection handles everything.
+- `windsurf-workflows` tool merged into `windsurf`.
 
 ---
 

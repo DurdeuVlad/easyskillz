@@ -1,3 +1,7 @@
+---
+name: easyskillz-register
+description: Add a new AI tool to the project and wire all existing skills to it.
+---
 # easyskillz-register
 
 Add a new AI tool to the project and wire all existing skills to it.

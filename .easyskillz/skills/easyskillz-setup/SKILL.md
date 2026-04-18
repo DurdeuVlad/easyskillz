@@ -1,3 +1,7 @@
+---
+name: easyskillz-setup
+description: Set up easyskillz after cloning a repository or on a new machine.
+---
 # easyskillz-setup
 
 Set up easyskillz after cloning a repository or on a new machine.

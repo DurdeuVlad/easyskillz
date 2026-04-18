@@ -14,7 +14,8 @@ class RegisterCommand extends BaseCommand {
   }
 
   async execute() {
-    const entry = registry[this.toolId];
+    const toolId = this.toolId.toLowerCase();
+    const entry = registry[toolId];
     if (!entry) {
       this.out(`Error: unknown tool "${this.toolId}".`);
       this.out(`Known tools: ${Object.keys(registry).join(', ')}`);
@@ -24,9 +25,9 @@ class RegisterCommand extends BaseCommand {
 
     const cfg = config.read(this.cwd);
 
-    if (cfg.tools.includes(this.toolId)) {
+    if (cfg.tools.includes(toolId)) {
       if (this.json) {
-        this.jsonOutput({ ok: true, tool: this.toolId, added: false });
+        this.jsonOutput({ ok: true, tool: toolId, added: false });
       } else {
         this.out(`${entry.name} already registered.`);
       }
@@ -34,14 +35,15 @@ class RegisterCommand extends BaseCommand {
     }
 
     // Add to config
-    cfg.tools.push(this.toolId);
+    cfg.tools.push(toolId);
     config.write(this.cwd, cfg);
     this.out(`  ✓ Registered ${entry.name}`);
 
     // Wire all existing skills
     const results = wirer.wireAllSkills(entry, this.cwd, cfg.linkStrategy);
-    for (const { skill, result } of results) {
-      if (result !== 'already') this.out(`  ✓ Wired skill "${skill}" → ${entry.name}`);
+    for (const { skill, results: skillResults } of results) {
+      const anyWired = skillResults.some(r => r.result !== 'already');
+      if (anyWired) this.out(`  ✓ Wired skill "${skill}" → ${entry.name}`);
     }
 
     // Write managed block to tool's instruction file
@@ -50,7 +52,8 @@ class RegisterCommand extends BaseCommand {
 
     // Update .gitignore based on existing strategy (if set)
     if (cfg.gitignoreStrategy && cfg.gitignoreStrategy !== 'none') {
-      const result = updateGitignore(this.cwd, [entry], cfg.gitignoreStrategy);
+      const toolEntries = cfg.tools.map(id => registry[id]).filter(Boolean);
+      const result = updateGitignore(this.cwd, toolEntries, cfg.gitignoreStrategy);
       if (result === 'updated') {
         this.out(`  ✓ Updated .gitignore (${cfg.gitignoreStrategy} strategy)`);
       }
@@ -62,7 +65,7 @@ class RegisterCommand extends BaseCommand {
     if (this.json) {
       this.jsonOutput({ 
         ok: true, 
-        tool: this.toolId, 
+        tool: toolId, 
         added: true, 
         skillsWired: results.length 
       });

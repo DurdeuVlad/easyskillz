@@ -1,3 +1,7 @@
+---
+name: easyskillz-add
+description: Create a new skill and automatically wire it to all registered AI tools.
+---
 # easyskillz-add
 
 Create a new skill and automatically wire it to all registered AI tools.

@@ -2,7 +2,10 @@
   "tools": [
     "claude",
     "codex",
-    "cursor"
+    "cursor",
+    "gemini",
+    "windsurf",
+    "windsurf-workflows"
   ],
   "linkStrategy": "symlink",
   "manageDocs": true,

@@ -9,6 +9,10 @@ const { META_SKILL } = require('./plan');
 const { writeInstruction } = require('../docs/syncFolder');
 
 const META_CONTENT = [
+  '---',
+  `name: ${META_SKILL}`,
+  'description: Documentation and best practices for using easyskillz to manage AI agent skills.',
+  '---',
   '# easyskillz — Skill Management System',
   '',
   'This project uses **easyskillz** to manage AI agent skills across multiple tools.',
@@ -130,8 +134,9 @@ function execute(cwd, toolIds, strategy, actions, out) {
 
   for (const a of actions.filter((a) => a.type === 'wire' || a.type === 'wire-meta')) {
     const skillName = a.type === 'wire' ? a.skill : META_SKILL;
-    const result = wirer.wireSkill(skillName, a.entry, cwd, strategy);
-    if (result !== 'already') out(`  ✓ Wired ${skillName} → ${a.entry.name}`);
+    const results = wirer.wireSkillToAllLocations(skillName, a.entry, cwd, strategy);
+    const anyWired = results.some(r => r.result !== 'already');
+    if (anyWired) out(`  ✓ Wired ${skillName} → ${a.entry.name}`);
   }
 
   for (const a of actions.filter((a) => a.type === 'instruct')) {

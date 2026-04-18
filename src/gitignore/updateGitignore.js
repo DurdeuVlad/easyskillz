@@ -3,35 +3,36 @@
 const fs = require('fs');
 const path = require('path');
 
+const START_MARKER = '# easyskillz-start';
+const END_MARKER = '# easyskillz-end';
+
 function updateGitignore(cwd, toolEntries, strategy) {
   if (!strategy || strategy === 'none') {
     return 'skipped';
   }
 
   const filePath = path.join(cwd, '.gitignore');
-  let existing = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
+  let content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
   
-  // Check for any easyskillz marker (old or new)
-  const marker = '# easyskillz';
-  if (existing.includes(marker)) {
-    return 'already';
-  }
-
   let lines = [];
+  lines.push(START_MARKER);
+  lines.push(`# strategy: ${strategy}`);
 
   if (strategy === 'full') {
-    lines.push('');
-    lines.push('# easyskillz — full gitignore (regenerate with `easyskillz sync`)');
-    
-    const toolDirs = new Set();
+    const managedItems = new Set();
     toolEntries.forEach((e) => {
-      const baseDir = e.skillsDir.split('/')[0];
-      toolDirs.add(baseDir + '/');
+      // 1. Surgical ignore of skills directory
+      managedItems.add(e.skillsDir + '/');
+      
+      // 2. Surgical ignore of tool config files (managed by easyskillz logic)
+      if (e.configFiles && e.configFiles.length > 0) {
+        e.configFiles.forEach((cf) => managedItems.add(cf));
+      }
     });
     
-    lines.push(...Array.from(toolDirs).sort());
-    lines.push('');
+    lines.push(...Array.from(managedItems).sort());
     
+    // 3. Surgical ignore of instruction files
     const instrFiles = [...new Set(toolEntries.map((e) => e.instructionFile))];
     instrFiles.forEach((file) => {
       if (file.includes('/')) {
@@ -40,7 +41,6 @@ function updateGitignore(cwd, toolEntries, strategy) {
         lines.push('**/' + file);
       }
     });
-    lines.push('');
   } else if (strategy === 'conflict-only') {
     const configFiles = new Set();
     toolEntries.forEach((e) => {
@@ -50,20 +50,39 @@ function updateGitignore(cwd, toolEntries, strategy) {
     });
     
     if (configFiles.size > 0) {
-      lines.push('');
-      lines.push('# easyskillz — conflict-generating files only');
-      lines.push('');
       lines.push(...Array.from(configFiles).sort());
-      lines.push('');
     }
   }
+  
+  lines.push(END_MARKER);
+  const newBlock = lines.join('\n');
 
-  if (lines.length > 0) {
-    fs.appendFileSync(filePath, lines.join('\n'), 'utf8');
-    return 'updated';
+  if (content.includes(START_MARKER)) {
+    // Update existing block
+    const startIndex = content.indexOf(START_MARKER);
+    const endIndex = content.indexOf(END_MARKER);
+    if (endIndex !== -1) {
+      const before = content.substring(0, startIndex);
+      const after = content.substring(endIndex + END_MARKER.length);
+      const updated = (before + newBlock + after).replace(/\n\n\n+/g, '\n\n');
+      if (updated === content) return 'already';
+      fs.writeFileSync(filePath, updated, 'utf8');
+      return 'updated';
+    }
+  }
+  
+  // Handle old-style marker if it exists
+  const oldMarker = '# easyskillz';
+  if (content.includes(oldMarker) && !content.includes(START_MARKER)) {
+    // Migration: just append new block for now, or replace old line?
+    // Let's replace the old line if it's there
+    content = content.replace(new RegExp(`^${oldMarker}.*$`, 'm'), '');
   }
 
-  return 'nothing';
+  // Append new block
+  const separator = content.length > 0 && !content.endsWith('\n') ? '\n\n' : '\n';
+  fs.appendFileSync(filePath, separator + newBlock + '\n', 'utf8');
+  return 'updated';
 }
 
 module.exports = { updateGitignore };

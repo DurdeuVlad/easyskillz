@@ -26,3 +26,22 @@ Thumbs.db
 **/.cursorrules
 **/.windsurfrules
 **/copilot-instructions.md
+
+# easyskillz-start
+# strategy: full
+.claude/settings.json
+.claude/settings.local.json
+.claude/skills/
+.codex/config.json
+.codex/skills/
+.cursor/config.json
+.cursor/skills/
+.gemini/settings.json
+.gemini/skills/
+.windsurf/settings.json
+.windsurf/skills/
+.windsurf/workflows/
+**/CLAUDE.md
+**/AGENTS.md
+**/GEMINI.md
+# easyskillz-end

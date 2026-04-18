@@ -179,8 +179,7 @@ No merge conflicts on tool config. No PRs blocked because someone uses a differe
 | Claude Code | `.claude/skills/` | `CLAUDE.md` |
 | Codex | `.codex/skills/` | `AGENTS.md` |
 | Cursor | `.cursor/skills/` | `AGENTS.md` |
-| Windsurf | `.windsurf/skills/` | `AGENTS.md` |
-| Windsurf Workflows | `.windsurf/workflows/` | `AGENTS.md` |
+| Windsurf | `.windsurf/skills/` & `.windsurf/workflows/` | `AGENTS.md` |
 | GitHub Copilot | `.github/skills/` | `.github/copilot-instructions.md` |
 | Gemini CLI | `.gemini/skills/` | `GEMINI.md` |
 
@@ -188,7 +187,7 @@ No merge conflicts on tool config. No PRs blocked because someone uses a differe
 
 ## How Wiring Works
 
-easyskillz probes symlink support on your machine automatically.
+easyskillz probes symlink support on your machine automatically. It also **auto-repairs skill formats**: if a skill is missing the required Gemini CLI frontmatter, easyskillz adds it automatically during sync.
 
 ```
 SYMLINKS AVAILABLE   ████████████████  →  uses symlinks (always in sync)

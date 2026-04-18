@@ -1,3 +1,7 @@
+---
+name: easyskillz-qa
+description: Comprehensive QA workflow for easyskillz CLI - build, install locally, and test all flows.
+---
 # easyskillz-qa
 
 **Comprehensive QA workflow for easyskillz CLI - build, install locally, and test all flows.**

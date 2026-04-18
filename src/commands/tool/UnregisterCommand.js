@@ -13,7 +13,8 @@ class UnregisterCommand extends BaseCommand {
   }
 
   async execute() {
-    const entry = registry[this.toolId];
+    const toolId = this.toolId.toLowerCase();
+    const entry = registry[toolId];
     if (!entry) {
       this.out(`Error: unknown tool "${this.toolId}".`);
       this.out(`Known tools: ${Object.keys(registry).join(', ')}`);
@@ -23,7 +24,7 @@ class UnregisterCommand extends BaseCommand {
     const cfg = config.read(this.cwd);
 
     // Check if tool is registered
-    if (!cfg.tools || !cfg.tools.includes(this.toolId)) {
+    if (!cfg.tools || !cfg.tools.includes(toolId)) {
       this.error(`Tool "${entry.name}" is not registered in this project`);
     }
 
@@ -48,7 +49,7 @@ class UnregisterCommand extends BaseCommand {
     if (!this.flags.confirm && this.isTTY) {
       this.out('');
       this.out('This will:');
-      this.out(`  - Remove "${this.toolId}" from .easyskillz/easyskillz.json`);
+      this.out(`  - Remove "${toolId}" from .easyskillz/easyskillz.json`);
       
       if (selectedMode === 'full') {
         const toolDir = path.join(this.cwd, entry.skillsDir.split('/')[0]);
@@ -68,7 +69,7 @@ class UnregisterCommand extends BaseCommand {
     }
 
     // Remove tool from config
-    cfg.tools = cfg.tools.filter(t => t !== this.toolId);
+    cfg.tools = cfg.tools.filter(t => t !== toolId);
     config.write(this.cwd, cfg);
 
     let deletedDir = false;
@@ -85,7 +86,7 @@ class UnregisterCommand extends BaseCommand {
     if (this.json) {
       this.jsonOutput({
         ok: true,
-        tool: this.toolId,
+        tool: toolId,
         unregistered: true,
         mode: selectedMode,
         directoryDeleted: deletedDir,

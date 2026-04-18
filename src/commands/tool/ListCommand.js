@@ -18,7 +18,7 @@ class ListCommand extends BaseCommand {
         ok: true,
         tools: tools.map(id => ({
           id,
-          name: registry[id]?.name || id,
+          name: registry[id.toLowerCase()]?.name || id,
         })),
       });
     } else {
@@ -29,7 +29,7 @@ class ListCommand extends BaseCommand {
       } else {
         this.out('Registered tools:');
         tools.forEach(id => {
-          const entry = registry[id];
+          const entry = registry[id.toLowerCase()];
           this.out(`  - ${entry ? entry.name : id} (${id})`);
         });
       }

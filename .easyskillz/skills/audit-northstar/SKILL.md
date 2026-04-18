@@ -1,3 +1,7 @@
+---
+name: audit-northstar
+description: Audits easyskillz code changes against North Star principles for design integrity and correctness.
+---
 # audit-northstar
 
 Audits easyskillz code changes — diffs, new files, staged changes, or PRs — against the five North Star principles defined in CONTRIBUTING.md.

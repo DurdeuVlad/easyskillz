@@ -28,12 +28,13 @@ async function plan(cwd, toolIds, strategy, out, isTTY, skipConfirm = false) {
         fs.statSync(path.join(skillsDir, n)).isDirectory()
       );
       for (const skill of allSkills) {
-        for (const toolId of toolIds) {
+        for (let toolId of toolIds) {
+          toolId = toolId.toLowerCase();
           const entry = registry[toolId];
           if (!entry) continue;
           const srcPath = path.resolve(cwd, '.easyskillz', 'skills', skill);
           const toolSkillsDir = path.resolve(cwd, entry.skillsDir);
-          const wired = wirer.isWired(toolSkillsDir, skill, srcPath, strategy);
+          const wired = wirer.isWired(toolSkillsDir, skill, srcPath, strategy, entry);
           out(`  ${skill.padEnd(20)} → ${entry.name}: ${wired ? '✓' : '✗ missing'}`);
         }
       }
@@ -50,21 +51,25 @@ async function plan(cwd, toolIds, strategy, out, isTTY, skipConfirm = false) {
   // Meta-skill (always included to ensure it's up to date)
   actions.push({ type: 'meta-skill' });
   const unwiredMetaToolIds = new Set(
-    unwired.filter((u) => u.skill === META_SKILL).map((u) => u.toolId)
+    unwired.filter((u) => u.skill === META_SKILL).map((u) => u.toolId.toLowerCase())
   );
-  for (const toolId of toolIds) {
+  for (let toolId of toolIds) {
+    toolId = toolId.toLowerCase();
     if (unwiredMetaToolIds.has(toolId)) continue;
     const entry = registry[toolId];
+    if (!entry) continue;
     const srcPath = path.resolve(cwd, '.easyskillz', 'skills', META_SKILL);
     const toolSkillsDir = path.resolve(cwd, entry.skillsDir);
-    if (!wirer.isWired(toolSkillsDir, META_SKILL, srcPath, strategy)) {
+    if (!wirer.isWired(toolSkillsDir, META_SKILL, srcPath, strategy, entry)) {
       actions.push({ type: 'wire-meta', entry });
     }
   }
 
   // Instruction file managed blocks
-  for (const toolId of toolIds) {
+  for (let toolId of toolIds) {
+    toolId = toolId.toLowerCase();
     const entry = registry[toolId];
+    if (!entry) continue;
     const instrPath = path.resolve(cwd, entry.instructionFile);
     const exists = fs.existsSync(instrPath);
     const hasManaged = exists && fs.readFileSync(instrPath, 'utf8').includes(MANAGED_OPEN);
@@ -75,7 +80,7 @@ async function plan(cwd, toolIds, strategy, out, isTTY, skipConfirm = false) {
   const gitignorePath = path.join(cwd, '.gitignore');
   const gitignoreContent = fs.existsSync(gitignorePath)
     ? fs.readFileSync(gitignorePath, 'utf8') : '';
-  if (!gitignoreContent.includes('# easyskillz')) {
+  if (!gitignoreContent.includes('# easyskillz-start')) {
     actions.push({ type: 'gitignore' });
   }
 

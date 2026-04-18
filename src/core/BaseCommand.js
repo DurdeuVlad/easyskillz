@@ -118,8 +118,15 @@ class BaseCommand {
       return true;
     }
 
-    // If in one-shot mode and confirm required, error
+    // If in one-shot mode and confirm required, check AI first then error
     if (requireConfirmFlag && this.hasFlags()) {
+      // Check for AI agent and show helpful warning
+      if (isAIAgent()) {
+        showAIWarning(commandName);
+        process.exit(1);
+      }
+      
+      // Not AI, show generic error
       this.out('Error: --confirm flag is required when using flags');
       this.out('');
       this.out(`Run 'easyskillz ${commandName} --help' for usage information.`);
