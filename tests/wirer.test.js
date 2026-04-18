@@ -118,8 +118,8 @@ test('wireSkill workflow type creates flat .md file not directory', () => {
   try {
     makeSkill(cwd, 'my-workflow');
     const entry = {
-      id: 'windsurf-workflows',
-      name: 'Windsurf Workflows',
+      id: 'workflows-tool',
+      name: 'Workflows Tool',
       skillsDir: '.windsurf/workflows',
       instructionFile: 'AGENTS.md',
       type: 'workflows',
@@ -143,7 +143,7 @@ test('wireSkill workflow type is idempotent', () => {
   try {
     makeSkill(cwd, 'my-workflow');
     const entry = {
-      id: 'windsurf-workflows', name: 'Windsurf Workflows',
+      id: 'workflows-tool', name: 'Workflows Tool',
       skillsDir: '.windsurf/workflows', instructionFile: 'AGENTS.md', type: 'workflows',
     };
     wirer.wireSkill('my-workflow', entry, cwd, 'stub');

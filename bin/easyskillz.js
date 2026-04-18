@@ -86,7 +86,7 @@ Flags:
   --mode=<full|revert>                  unregister mode (tool unregister)
   --target=<path>                       target path (project export)
 
-Supported tools: claude, codex, cursor, windsurf, windsurf-workflows, copilot, gemini
+Supported tools: claude, codex, cursor, windsurf, copilot, gemini
 
 Examples:
   easyskillz project sync --docs=yes --docs-strategy=unified --gitignore=full

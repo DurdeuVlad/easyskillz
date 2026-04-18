@@ -32,7 +32,7 @@ const REGISTRY = {
     name: 'Windsurf',
     skillsDir: '.windsurf/skills',
     instructionFile: 'AGENTS.md',
-    detectionMarkers: ['.windsurf'],       // folder created on project open
+    detectionMarkers: ['.windsurf', '.windsurf/workflows'], // folder or workflows root
     configFiles: ['.windsurf/settings.json'],
     // Windsurf supports both skills (folder-based) and workflows (flat .md files)
     additionalWiring: [
@@ -41,15 +41,6 @@ const REGISTRY = {
         type: 'workflows',  // flat .md files instead of folders
       },
     ],
-  },
-  'windsurf-workflows': {
-    id: 'windsurf-workflows',
-    name: 'Windsurf Workflows',
-    skillsDir: '.windsurf/workflows',
-    instructionFile: 'AGENTS.md',
-    detectionMarkers: ['.windsurf/workflows', '.windsurf'], // workflows dir or root folder
-    type: 'workflows',                 // wirer: flat .md files, not skill folders
-    configFiles: ['.windsurf/settings.json'],
   },
   copilot: {
     id: 'copilot',

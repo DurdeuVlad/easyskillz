@@ -4,8 +4,7 @@
     "codex",
     "cursor",
     "gemini",
-    "windsurf",
-    "windsurf-workflows"
+    "windsurf"
   ],
   "linkStrategy": "symlink",
   "manageDocs": true,

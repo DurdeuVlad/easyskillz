@@ -13,6 +13,7 @@ const { updateGitignore } = require('../../gitignore/updateGitignore');
 class SyncCommand extends BaseCommand {
   constructor(cwd, options) {
     super(options);
+    this.cwd = cwd;
   }
 
   async execute() {
@@ -23,7 +24,7 @@ class SyncCommand extends BaseCommand {
       this.error('No AI tools detected in this directory.\n' +
         'Make sure your tool has a config file here (e.g. CLAUDE.md, AGENTS.md, .cursorrules).\n' +
         'Or add a tool manually: easyskillz tool register <tool>\n' +
-        'Supported tools: claude, codex, cursor, windsurf, windsurf-workflows, copilot, gemini');
+        'Supported tools: claude, codex, cursor, windsurf, copilot, gemini');
     }
 
     // Plan wiring actions (skip confirmation if flags provided)

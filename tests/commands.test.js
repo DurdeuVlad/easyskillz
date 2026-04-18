@@ -7,8 +7,8 @@ const path = require('path');
 const os = require('os');
 const config = require('../src/config');
 const wirer = require('../src/wirer');
-const add = require('../src/commands/add');
-const register = require('../src/commands/register');
+const AddCommand = require('../src/commands/skill/AddCommand');
+const RegisterCommand = require('../src/commands/tool/RegisterCommand');
 
 function tmpDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'easyskillz-test-'));
@@ -34,7 +34,8 @@ test('add creates SKILL.md and wires to registered tools', async () => {
     // pre-register claude via config
     config.write(cwd, { tools: ['claude'], linkStrategy: 'stub' });
 
-    await add({ cwd, args: ['review-pr'], json: true });
+    const cmd = new AddCommand('review-pr', cwd, { json: true });
+    await cmd.execute();
 
     const skillFile = path.join(cwd, '.easyskillz', 'skills', 'review-pr', 'SKILL.md');
     assert.ok(fs.existsSync(skillFile), 'SKILL.md should be created');
@@ -50,8 +51,10 @@ test('add is idempotent — second call does not throw', async () => {
   const cwd = tmpDir();
   try {
     config.write(cwd, { tools: ['claude'], linkStrategy: 'stub' });
-    await add({ cwd, args: ['review-pr'], json: true });
-    await add({ cwd, args: ['review-pr'], json: true }); // should not throw
+    const cmd1 = new AddCommand('review-pr', cwd, { json: true });
+    await cmd1.execute();
+    const cmd2 = new AddCommand('review-pr', cwd, { json: true });
+    await cmd2.execute(); // should not throw
   } finally {
     cleanup(cwd);
   }
@@ -61,7 +64,8 @@ test('add rejects invalid skill names', async () => {
   const cwd = tmpDir();
   try {
     config.write(cwd, { tools: ['claude'], linkStrategy: 'stub' });
-    await assert.rejects(() => add({ cwd, args: ['../escape'], json: true }));
+    const cmd = new AddCommand('../escape', cwd, { json: true });
+    await assert.rejects(() => cmd.execute());
   } finally {
     cleanup(cwd);
   }
@@ -71,7 +75,8 @@ test('add rejects names with slashes', async () => {
   const cwd = tmpDir();
   try {
     config.write(cwd, { tools: ['claude'], linkStrategy: 'stub' });
-    await assert.rejects(() => add({ cwd, args: ['foo/bar'], json: true }));
+    const cmd = new AddCommand('foo/bar', cwd, { json: true });
+    await assert.rejects(() => cmd.execute());
   } finally {
     cleanup(cwd);
   }
@@ -90,7 +95,8 @@ test('register adds tool to config and wires existing skills', async () => {
     fs.mkdirSync(skillDir, { recursive: true });
     fs.writeFileSync(path.join(skillDir, 'SKILL.md'), '# commit-msg\n', 'utf8');
 
-    await register({ cwd, args: ['claude'], json: true });
+    const cmd = new RegisterCommand('claude', cwd, { json: true });
+    await cmd.execute();
 
     const cfg = config.read(cwd);
     assert.ok(cfg.tools.includes('claude'), 'claude should be in tools');
@@ -106,8 +112,10 @@ test('register is idempotent — second call does not throw', async () => {
   const cwd = tmpDir();
   try {
     config.write(cwd, { tools: [], linkStrategy: 'stub' });
-    await register({ cwd, args: ['claude'], json: true });
-    await register({ cwd, args: ['claude'], json: true }); // already registered
+    const cmd1 = new RegisterCommand('claude', cwd, { json: true });
+    await cmd1.execute();
+    const cmd2 = new RegisterCommand('claude', cwd, { json: true });
+    await cmd2.execute(); // already registered
     const cfg = config.read(cwd);
     assert.equal(cfg.tools.filter((t) => t === 'claude').length, 1, 'no duplicates');
   } finally {
@@ -119,8 +127,9 @@ test('register rejects unknown tool', async () => {
   const cwd = tmpDir();
   try {
     config.write(cwd, { tools: [], linkStrategy: 'stub' });
+    const cmd = new RegisterCommand('nonexistent-tool', cwd, { json: true });
     await assert.rejects(
-      () => register({ cwd, args: ['nonexistent-tool'], json: true }),
+      () => cmd.execute(),
       // process.exit(1) throws in test context — just check it rejects
     );
   } finally {

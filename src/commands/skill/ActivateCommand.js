@@ -10,6 +10,7 @@ const wirer = require('../../wirer');
 class ActivateCommand extends BaseCommand {
   constructor(skillName, cwd, options) {
     super(options);
+    this.cwd = cwd;
     this.skillName = skillName;
   }
 

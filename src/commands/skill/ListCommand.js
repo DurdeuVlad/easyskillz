@@ -7,6 +7,7 @@ const BaseCommand = require('../../core/BaseCommand');
 class ListCommand extends BaseCommand {
   constructor(cwd, options) {
     super(options);
+    this.cwd = cwd;
   }
 
   async execute() {

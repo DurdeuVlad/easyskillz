@@ -10,6 +10,7 @@ const { updateGitignore } = require('../../gitignore/updateGitignore');
 class RegisterCommand extends BaseCommand {
   constructor(toolId, cwd, options) {
     super(options);
+    this.cwd = cwd;
     this.toolId = toolId;
   }
 

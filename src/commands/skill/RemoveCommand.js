@@ -9,6 +9,7 @@ const registry = require('../../registry');
 class RemoveCommand extends BaseCommand {
   constructor(skillName, cwd, options) {
     super(options);
+    this.cwd = cwd;
     this.skillName = skillName;
   }
 

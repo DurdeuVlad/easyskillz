@@ -7,6 +7,7 @@ const registry = require('../../registry');
 class ListCommand extends BaseCommand {
   constructor(cwd, options) {
     super(options);
+    this.cwd = cwd;
   }
 
   async execute() {

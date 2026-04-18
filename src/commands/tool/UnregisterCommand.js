@@ -9,6 +9,7 @@ const registry = require('../../registry');
 class UnregisterCommand extends BaseCommand {
   constructor(toolId, cwd, options) {
     super(options);
+    this.cwd = cwd;
     this.toolId = toolId;
   }
 
