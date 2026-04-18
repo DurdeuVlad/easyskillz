@@ -1,6 +1,6 @@
 {
   "name": "easyskillz",
-  "version": "2.0.0-alpha.4",
+  "version": "0.2.0",
   "description": "Single source of truth for AI agent skills across multiple tools",
   "main": "index.js",
   "bin": {
