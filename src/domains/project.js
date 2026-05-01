@@ -9,7 +9,7 @@ async function project({ action, args, flags, cwd, isTTY }) {
   
   switch (action) {
     case 'sync': {
-      const cmd = new SyncCommand(cwd, options);
+      const cmd = new SyncCommand(options);
       await cmd.execute();
       break;
     }

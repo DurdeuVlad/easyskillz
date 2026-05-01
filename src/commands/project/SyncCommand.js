@@ -11,9 +11,8 @@ const { centralize } = require('../../docs/centralizeFiles');
 const { updateGitignore } = require('../../gitignore/updateGitignore');
 
 class SyncCommand extends BaseCommand {
-  constructor(cwd, options) {
+  constructor(options) {
     super(options);
-    this.cwd = cwd;
   }
 
   async execute() {
