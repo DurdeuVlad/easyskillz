@@ -71,6 +71,7 @@ Tool Commands:
 
 Project Commands:
   easyskillz project sync               detect tools, wire skills, setup project
+  easyskillz project doctor             report compatibility issues without changing files
   easyskillz project export --target <path>  copy skills to another project
 
 Docs Commands:

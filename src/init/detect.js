@@ -43,7 +43,7 @@ function detect(cwd, out) {
   out('Testing symlink support...');
   const symlinkOk = wirer.probeSymlinks();
   const strategy = symlinkOk ? 'symlink' : 'stub';
-  out(`  ${symlinkOk ? '✓ symlinks work' : '✗ symlinks unavailable — will use stub .md files'}`);
+  out(`  ${symlinkOk ? '✓ symlinks work' : '✗ symlinks unavailable — will copy generated files'}`);
   out('');
 
   return { toolIds, strategy, found, notFound, existingConfig };

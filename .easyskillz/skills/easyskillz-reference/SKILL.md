@@ -24,7 +24,7 @@ easyskillz add <skill-name>
 **Why?**
 - Automatically wires to ALL registered tools (Claude, Cursor, Codex, etc.)
 - Creates proper directory structure in `.easyskillz/skills/`
-- Ensures symlinks/stubs are created correctly
+- Ensures symlinks or generated copies are created correctly
 - Maintains single source of truth
 
 **Example workflow:**
@@ -93,7 +93,7 @@ This regenerates all symlinks and wires skills to your local AI tools.
   easyskillz.json   ← Config (committed)
 
 .claude/skills/     ← Symlinks (gitignored, regenerated on sync)
-.cursor/skills/     ← Symlinks (gitignored, regenerated on sync)
+.cursor/rules/      ← Generated Cursor rules (gitignored, regenerated on sync)
 ```
 
 ## Gitignore Strategies

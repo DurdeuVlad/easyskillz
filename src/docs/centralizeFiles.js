@@ -3,8 +3,10 @@
 const fs = require('fs');
 const path = require('path');
 const registry = require('../registry');
+const { MANAGED_OPEN, MANAGED_CLOSE, MANAGED_BLOCK } = require('./syncFolder');
 
 const DOCS_DIR = '.easyskillz/docs';
+const POINTER_RE = /^<!-- Managed by easyskillz -->\s*<!-- See: .*? -->\s*$/s;
 
 function getToolForFile(fileName) {
   for (const [toolId, entry] of Object.entries(registry)) {
@@ -16,93 +18,109 @@ function getToolForFile(fileName) {
   return null;
 }
 
+function stripManagedBlock(content) {
+  let next = content;
+  while (next.includes(MANAGED_OPEN)) {
+    const start = next.indexOf(MANAGED_OPEN);
+    const end = next.indexOf(MANAGED_CLOSE, start);
+    if (end === -1) break;
+    next = next.slice(0, start) + next.slice(end + MANAGED_CLOSE.length);
+  }
+  return next.trim();
+}
+
+function cleanInstructionContent(content) {
+  const trimmed = content.trim();
+  if (!trimmed || POINTER_RE.test(trimmed)) return '';
+  return stripManagedBlock(trimmed);
+}
+
+function composeManagedContent(parts) {
+  const body = parts.map((part) => part.trim()).filter(Boolean).join('\n\n');
+  return body ? `${body}\n\n${MANAGED_BLOCK}\n` : `${MANAGED_BLOCK}\n`;
+}
+
+function replaceWithManagedFile(filePath, centralFile, content) {
+  fs.rmSync(filePath, { recursive: true, force: true });
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+
+  try {
+    fs.symlinkSync(path.relative(path.dirname(filePath), centralFile), filePath);
+    return 'symlink';
+  } catch {
+    fs.writeFileSync(filePath, content, 'utf8');
+    return 'copy';
+  }
+}
+
 function centralizeUnified(cwd, scannedFiles) {
   const actions = [];
-  
+
   for (const [relDir, fileNames] of Object.entries(scannedFiles)) {
     const sourceDir = relDir === '.' ? cwd : path.join(cwd, relDir);
     const docsPath = path.join(cwd, DOCS_DIR, relDir);
     const centralFile = path.join(docsPath, 'INSTRUCTION.md');
-    
-    // Merge content from all instruction files in this directory
-    let mergedContent = '';
+    const mergedParts = [];
     const filesToReplace = [];
-    
+
     for (const fileName of fileNames) {
       const filePath = path.join(sourceDir, fileName);
-      if (fs.existsSync(filePath)) {
-        const content = fs.readFileSync(filePath, 'utf8').trim();
-        if (content) {
-          if (mergedContent) mergedContent += '\n\n';
-          mergedContent += `<!-- From ${fileName} -->\n${content}`;
-        }
-        filesToReplace.push({ fileName, filePath });
-      }
+      if (!fs.existsSync(filePath)) continue;
+
+      const content = cleanInstructionContent(fs.readFileSync(filePath, 'utf8'));
+      if (content) mergedParts.push(`<!-- From ${fileName} -->\n${content}`);
+      filesToReplace.push({ fileName, filePath });
     }
-    
-    // Write centralized file
+
     fs.mkdirSync(docsPath, { recursive: true });
-    fs.writeFileSync(centralFile, mergedContent + '\n', 'utf8');
-    
-    // Replace originals with symlinks
-    for (const { fileName, filePath } of filesToReplace) {
-      fs.unlinkSync(filePath);
-      
-      try {
-        fs.symlinkSync(path.relative(path.dirname(filePath), centralFile), filePath);
-        actions.push({ type: 'symlink', from: filePath, to: centralFile });
-      } catch (err) {
-        // Fallback: recreate file with pointer
-        fs.writeFileSync(filePath, `<!-- Managed by easyskillz -->\n<!-- See: ${centralFile} -->\n`, 'utf8');
-        actions.push({ type: 'stub', from: filePath, to: centralFile });
-      }
+    const centralContent = composeManagedContent(mergedParts);
+    fs.writeFileSync(centralFile, centralContent, 'utf8');
+
+    for (const { filePath } of filesToReplace) {
+      const type = replaceWithManagedFile(filePath, centralFile, centralContent);
+      actions.push({ type, from: filePath, to: centralFile });
     }
   }
-  
+
   return actions;
 }
 
 function centralizeToolSpecific(cwd, scannedFiles) {
   const actions = [];
-  
+
   for (const [relDir, fileNames] of Object.entries(scannedFiles)) {
     const sourceDir = relDir === '.' ? cwd : path.join(cwd, relDir);
     const docsPath = path.join(cwd, DOCS_DIR, relDir);
-    
+
     for (const fileName of fileNames) {
       const filePath = path.join(sourceDir, fileName);
       const centralFile = path.join(docsPath, fileName);
-      
       if (!fs.existsSync(filePath)) continue;
-      
-      // Copy content to centralized location
-      const content = fs.readFileSync(filePath, 'utf8');
+
+      const cleaned = cleanInstructionContent(fs.readFileSync(filePath, 'utf8'));
+      const centralContent = composeManagedContent(cleaned ? [`<!-- From ${fileName} -->\n${cleaned}`] : []);
+
       fs.mkdirSync(docsPath, { recursive: true });
-      fs.writeFileSync(centralFile, content, 'utf8');
-      
-      // Replace with symlink
-      fs.unlinkSync(filePath);
-      
-      try {
-        fs.symlinkSync(path.relative(path.dirname(filePath), centralFile), filePath);
-        actions.push({ type: 'symlink', from: filePath, to: centralFile });
-      } catch (err) {
-        // Fallback: recreate file with pointer
-        fs.writeFileSync(filePath, `<!-- Managed by easyskillz -->\n<!-- See: ${centralFile} -->\n`, 'utf8');
-        actions.push({ type: 'stub', from: filePath, to: centralFile });
-      }
+      fs.writeFileSync(centralFile, centralContent, 'utf8');
+
+      const type = replaceWithManagedFile(filePath, centralFile, centralContent);
+      actions.push({ type, from: filePath, to: centralFile });
     }
   }
-  
+
   return actions;
 }
 
 function centralize(cwd, scannedFiles, strategy) {
   if (strategy === 'unified') {
     return centralizeUnified(cwd, scannedFiles);
-  } else {
-    return centralizeToolSpecific(cwd, scannedFiles);
   }
+  return centralizeToolSpecific(cwd, scannedFiles);
 }
 
-module.exports = { centralize, DOCS_DIR };
+module.exports = {
+  centralize,
+  DOCS_DIR,
+  getToolForFile,
+  cleanInstructionContent,
+};

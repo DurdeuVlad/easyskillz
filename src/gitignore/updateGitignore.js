@@ -5,6 +5,7 @@ const path = require('path');
 
 const START_MARKER = '# easyskillz-start';
 const END_MARKER = '# easyskillz-end';
+const LEGACY_GENERATED_DIRS = ['.codex/skills', '.cursor/skills'];
 
 function updateGitignore(cwd, toolEntries, strategy) {
   if (!strategy || strategy === 'none') {
@@ -22,14 +23,16 @@ function updateGitignore(cwd, toolEntries, strategy) {
     // 1. Group managed items by their base directory (e.g., ".claude")
     const dirMap = new Map();
     toolEntries.forEach((e) => {
-      const parts = e.skillsDir.split('/');
-      const baseDir = parts[0];
-      if (!dirMap.has(baseDir)) dirMap.set(baseDir, new Set());
-      
-      const managed = dirMap.get(baseDir);
-      managed.add(e.skillsDir);
-      if (e.configFiles) e.configFiles.forEach(cf => managed.add(cf));
-      if (e.additionalWiring) e.additionalWiring.forEach(aw => managed.add(aw.skillsDir));
+      const managedTargets = (e.skillTargets || [{ path: e.skillsDir }]).map((target) => target.path);
+      const addManaged = (managedPath) => {
+        const baseDir = managedPath.split('/')[0];
+        if (!dirMap.has(baseDir)) dirMap.set(baseDir, new Set());
+        dirMap.get(baseDir).add(managedPath);
+      };
+
+      managedTargets.forEach(addManaged);
+      LEGACY_GENERATED_DIRS.forEach(addManaged);
+      if (e.configFiles) e.configFiles.forEach(addManaged);
     });
 
     const linesToIgnore = new Set();
@@ -65,7 +68,7 @@ function updateGitignore(cwd, toolEntries, strategy) {
       if (useSurgical) {
         // Surgical: Add specific managed items only
         managedSet.forEach(m => {
-          const isDir = m.includes('/skills') || m.includes('/workflows');
+          const isDir = m.includes('/skills') || m.includes('/workflows') || m.includes('/rules');
           linesToIgnore.add(isDir ? m + '/' : m);
         });
       } else {

@@ -1,6 +1,6 @@
 {
   "name": "easyskillz",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Single source of truth for AI agent skills across multiple tools",
   "main": "index.js",
   "bin": {
@@ -12,7 +12,7 @@
     "index.js"
   ],
   "scripts": {
-    "test": "node --test tests/*.test.js",
+    "test": "node --test tests/*.test.js tests/e2e/*.test.js",
     "release:patch": "npm test && npm version patch && npm publish --access public",
     "release:minor": "npm test && npm version minor && npm publish --access public",
     "release:major": "npm test && npm version major && npm publish --access public"

@@ -6,8 +6,6 @@ const registry = require('../registry');
 
 module.exports = function detect(cwd) {
   const entry = registry.gemini;
-  const found =
-    fs.existsSync(path.join(cwd, entry.skillsDir)) ||
-    entry.detectionMarkers.some((marker) => fs.existsSync(path.join(cwd, marker)));
+  const found = entry.detectionMarkers.some((marker) => fs.existsSync(path.join(cwd, marker)));
   return { id: entry.id, found, entry };
 };

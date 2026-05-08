@@ -9,12 +9,15 @@ Thumbs.db
 
 # easyskillz-start
 # strategy: full
-.claude/settings.json
-.claude/settings.local.json
-.claude/skills/
-.codex/
-.cursor/
-.gemini/
+.agents/
+.claude/
+.codex/config.json
+.codex/skills/
+.cursor/config.json
+.cursor/rules/
+.cursor/skills/
+.gemini/settings.json
+.gemini/skills/
 .windsurf/
 **/CLAUDE.md
 **/AGENTS.md

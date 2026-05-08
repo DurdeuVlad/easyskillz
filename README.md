@@ -75,6 +75,7 @@ easyskillz tool list                  # show registered tools
 ### Project Operations
 ```bash
 easyskillz project sync               # detect tools, wire everything, set up .easyskillz/
+easyskillz project doctor             # report stale targets and metadata issues
 easyskillz project export --target <path>  # copy skills + config to another project
 ```
 
@@ -101,7 +102,7 @@ $ easyskillz project sync
 
 Scanning for AI tools...
   ✓ Claude Code      (.claude/skills)
-  ✓ Cursor           (.cursor/skills)
+  ✓ Cursor           (.cursor/rules)
   ✗ Codex            (not found)
 
 Reading config (.easyskillz/easyskillz.json)...
@@ -118,7 +119,7 @@ Scanning for unwired skills...
 
 Plan:
   [ wire ]      .claude/skills/review-pr   →  .easyskillz/skills/review-pr
-  [ wire ]      .cursor/skills/review-pr   →  .easyskillz/skills/review-pr
+  [ wire ]      .cursor/rules/review-pr.mdc   →  .easyskillz/skills/review-pr
   [ wire ]      .claude/skills/commit-msg  →  .easyskillz/skills/commit-msg
 
 Proceed? [Y/n]
@@ -144,7 +145,7 @@ easyskillz is designed to minimize git surface area and eliminate developer fric
 |------|-----------|-----|
 | `.easyskillz/skills/` | ✓ yes | shared source of truth for all skills |
 | `.easyskillz/easyskillz.json` | ✓ yes | shared tool list so teammates wire the same tools |
-| `.claude/skills/`, `.cursor/skills/`, etc. | ✗ no | machine-local symlinks, meaningless to others |
+| `.claude/skills/`, `.cursor/rules/`, `.agents/skills/`, etc. | ✗ no | generated tool output, regenerated on sync |
 | `CLAUDE.md`, `AGENTS.md`, `.cursor/rules`, etc. | ✗ no | personal tool config, differs per developer |
 
 Each developer uses whichever AI tools they prefer. Their local config, symlinks, and instruction files never touch git. Only the skills themselves — the shared knowledge — are committed.
@@ -174,8 +175,10 @@ No merge conflicts on tool config. No PRs blocked because someone uses a differe
 
 easyskillz is designed to "just work." It handles several complex AI tool behaviors automatically:
 
-- **Windsurf Dual-Wiring**: Windsurf uses both directories (for Cascade) and flat files (for Slash commands). Registration wires skills to both `.windsurf/skills/` and `.windsurf/workflows/` automatically.
-- **Skill Auto-Repair**: Gemini CLI requires specific YAML frontmatter in `SKILL.md`. easyskillz detects missing metadata and auto-injects it during `sync` to ensure your skills are always discoverable by all AI agents.
+- **Native Agent Targets**: Codex uses `.agents/skills/`, Gemini uses `.gemini/skills/`, Cursor uses `.cursor/rules/*.mdc`, Claude and Copilot use native skill folders, and Windsurf uses both `.windsurf/skills/` and `.windsurf/workflows/*.md`.
+- **Windsurf Dual Output**: registering or syncing Windsurf generates a skill folder and a workflow file for every skill.
+- **Skill Auto-Repair**: easyskillz ensures every `SKILL.md` has a `name` and useful `description` so agents can discover and activate it.
+- **Project Doctor**: `easyskillz project doctor` reports stale `.codex/skills`, stale `.cursor/skills`, pointer-only instruction files, missing generated targets, and weak metadata.
 - **Surgical Gitignore**: When using the `smart` strategy (recommended), easyskillz surgically ignores only the files it manages (like symlinks and settings). Your custom tool files (hooks, scripts, logs) stay tracked by git.
 - **Robust Detection**: Tools are detected via multiple markers — whether it's a config file, an instruction file, or just the root folder, easyskillz will find it.
 - **Normalization**: Tool IDs are case-insensitive. `easyskillz tool register CurSor` works exactly like `cursor`.
@@ -184,12 +187,12 @@ easyskillz is designed to "just work." It handles several complex AI tool behavi
 
 ## Supported Tools
 
-| Tool | Skills Path | Instruction File |
+| Tool | Generated Target | Instruction File |
 |------|-------------|-----------------|
 | Claude Code | `.claude/skills/` | `CLAUDE.md` |
-| Codex | `.codex/skills/` | `AGENTS.md` |
-| Cursor | `.cursor/skills/` | `AGENTS.md` |
-| Windsurf | `.windsurf/skills/` & `.windsurf/workflows/` | `AGENTS.md` |
+| Codex | `.agents/skills/` | `AGENTS.md` |
+| Cursor | `.cursor/rules/*.mdc` | `AGENTS.md` |
+| Windsurf | `.windsurf/skills/` plus `.windsurf/workflows/*.md` | `AGENTS.md` |
 | GitHub Copilot | `.github/skills/` | `.github/copilot-instructions.md` |
 | Gemini CLI | `.gemini/skills/` | `GEMINI.md` |
 
@@ -201,17 +204,14 @@ easyskillz probes symlink support on your machine automatically.
 
 ```
 SYMLINKS AVAILABLE   ████████████████  →  uses symlinks (always in sync)
-SYMLINKS UNAVAILABLE ████████████████  →  creates stub .md files pointing to source
+SYMLINKS UNAVAILABLE ████████████████  →  copies real generated files
 ```
 
-**Symlink** — a `.claude/skills/review-pr` directory that IS `.easyskillz/skills/review-pr`. Edit once, all tools see it instantly.
+**Symlink** - a `.claude/skills/review-pr` directory that IS `.easyskillz/skills/review-pr`. Edit once, all tools see it instantly.
 
-**Stub** — a `.claude/skills/review-pr/SKILL.md` file that says:
-```
-Read the actual skill from: .easyskillz/skills/review-pr/SKILL.md
-```
+**Copy fallback** - a real generated skill directory or rule file. No pointer stubs.
 
-**Workflow (Windsurf)** — a flat `.windsurf/workflows/review-pr.md` file that mirrors the content of your skill.
+**Workflow (Windsurf)** - a flat `.windsurf/workflows/review-pr.md` file generated alongside the skill directory for every Windsurf skill.
 
 No silent failures. No copies getting out of sync.
 
@@ -244,7 +244,7 @@ easyskillz uses a managed block (`# easyskillz-start` ... `# easyskillz-end`) so
 ```
 
 **Instruction file management** (optional):
-- `manageDocs: true` — easyskillz centralizes instruction files in `.easyskillz/docs/` and creates symlinks
+- `manageDocs: true` — easyskillz centralizes instruction files in `.easyskillz/docs/` and leaves real content at native instruction paths
 - `docsStrategy: "unified"` — one `INSTRUCTION.md` per folder for all tools
 - `docsStrategy: "tool-specific"` — separate file per tool per folder
 
@@ -275,7 +275,7 @@ $ easyskillz sync --json
 **Optional**: Enable instruction file management during first sync:
 - Automatically scans entire repo for `CLAUDE.md`, `AGENTS.md`, etc.
 - Centralizes them in `.easyskillz/docs/`
-- Replaces with symlinks (gitignored)
+- Replaces with symlinks when possible, otherwise copies real content
 - Choose `unified` (one source for all tools) or `tool-specific` (separate per tool)
 - Fully automated after initial choice
 
@@ -331,7 +331,7 @@ You could. But then:
 - No auto-detection of tools
 - No idempotent re-wire on clone
 - No instruction file updates
-- No stub fallback for restricted environments
+- No generated copy fallback for restricted environments
 - No `easyskillz add` to wire new skills everywhere at once
 
 easyskillz is the missing glue.
@@ -342,7 +342,7 @@ easyskillz is the missing glue.
 
 - **`easyskillz remove <name>`** — unwire and delete a skill from all tools
 - **`easyskillz list`** — show all skills and their wiring status per tool
-- **`easyskillz status`** — quick health check, flags anything broken or unwired
+- **`easyskillz project doctor`** - quick health check, flags stale targets, pointer stubs, and missing outputs
 - **Skill templates** — `easyskillz add <name> --template <type>` for common patterns
 
 ---

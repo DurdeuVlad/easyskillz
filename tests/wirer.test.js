@@ -48,7 +48,7 @@ test('isWired returns false when target does not exist', () => {
   }
 });
 
-test('isWired returns false for stub strategy when SKILL.md has no easyskillz marker', () => {
+test('isWired returns true for copy strategy when SKILL.md exists', () => {
   const cwd = tmpDir();
   try {
     const targetDir = path.join(cwd, '.claude', 'skills');
@@ -56,7 +56,7 @@ test('isWired returns false for stub strategy when SKILL.md has no easyskillz ma
     fs.mkdirSync(target, { recursive: true });
     fs.writeFileSync(path.join(target, 'SKILL.md'), '# my-skill\nsome content', 'utf8');
     const srcPath = path.join(cwd, '.easyskillz', 'skills', 'my-skill');
-    assert.equal(wirer.isWired(targetDir, 'my-skill', srcPath, 'stub'), false);
+    assert.equal(wirer.isWired(targetDir, 'my-skill', srcPath, 'stub'), true);
   } finally {
     cleanup(cwd);
   }
@@ -64,7 +64,7 @@ test('isWired returns false for stub strategy when SKILL.md has no easyskillz ma
 
 // ── wireSkill (stub strategy) ─────────────────────────────────────────────────
 
-test('wireSkill with stub strategy creates stub SKILL.md', () => {
+test('wireSkill with stub strategy copies real SKILL.md content', () => {
   const cwd = tmpDir();
   try {
     makeSkill(cwd, 'review-pr');
@@ -74,7 +74,7 @@ test('wireSkill with stub strategy creates stub SKILL.md', () => {
     const stubFile = path.join(cwd, `.claude/skills/review-pr/SKILL.md`);
     assert.ok(fs.existsSync(stubFile));
     const content = fs.readFileSync(stubFile, 'utf8');
-    assert.ok(content.includes('easyskillz'));
+    assert.ok(content.includes('review-pr'));
     assert.ok(content.includes('review-pr'));
   } finally {
     cleanup(cwd);
@@ -113,16 +113,61 @@ test('wireSkill with symlink strategy wires or stubs without throwing', () => {
 
 // ── wireSkill (workflow type) ─────────────────────────────────────────────────
 
+test('wireSkill writes Codex skills to .agents/skills', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'codex-skill');
+    const entry = {
+      id: 'codex',
+      name: 'Codex',
+      skillsDir: '.agents/skills',
+      instructionFile: 'AGENTS.md',
+      skillTargets: [{ kind: 'skill-dir', path: '.agents/skills' }],
+    };
+    wirer.wireSkill('codex-skill', entry, cwd, 'stub');
+    assert.ok(fs.existsSync(path.join(cwd, '.agents', 'skills', 'codex-skill', 'SKILL.md')));
+    assert.ok(!fs.existsSync(path.join(cwd, '.codex', 'skills', 'codex-skill')));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('wireSkill writes Cursor rules instead of skill directories', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'cursor-skill');
+    const entry = {
+      id: 'cursor',
+      name: 'Cursor',
+      skillsDir: '.cursor/rules',
+      instructionFile: 'AGENTS.md',
+      skillTargets: [{ kind: 'cursor-rule', path: '.cursor/rules' }],
+    };
+    wirer.wireSkill('cursor-skill', entry, cwd, 'stub');
+    assert.ok(fs.existsSync(path.join(cwd, '.cursor', 'rules', 'cursor-skill.mdc')));
+    assert.ok(!fs.existsSync(path.join(cwd, '.cursor', 'skills', 'cursor-skill')));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
 test('wireSkill workflow type creates flat .md file not directory', () => {
   const cwd = tmpDir();
   try {
     makeSkill(cwd, 'my-workflow');
+    fs.writeFileSync(path.join(cwd, '.easyskillz', 'skills', 'my-workflow', 'SKILL.md'), [
+      '---',
+      'name: my-workflow',
+      'description: A manual workflow',
+      '---',
+      '# my-workflow',
+    ].join('\n'), 'utf8');
     const entry = {
       id: 'workflows-tool',
       name: 'Workflows Tool',
       skillsDir: '.windsurf/workflows',
       instructionFile: 'AGENTS.md',
-      type: 'workflows',
+      skillTargets: [{ kind: 'windsurf-workflow', path: '.windsurf/workflows' }],
     };
     const result = wirer.wireSkill('my-workflow', entry, cwd, 'stub');
     assert.equal(result, 'wired');
@@ -144,7 +189,9 @@ test('wireSkill workflow type is idempotent', () => {
     makeSkill(cwd, 'my-workflow');
     const entry = {
       id: 'workflows-tool', name: 'Workflows Tool',
-      skillsDir: '.windsurf/workflows', instructionFile: 'AGENTS.md', type: 'workflows',
+      skillsDir: '.windsurf/workflows',
+      instructionFile: 'AGENTS.md',
+      skillTargets: [{ kind: 'windsurf-workflow', path: '.windsurf/workflows' }],
     };
     wirer.wireSkill('my-workflow', entry, cwd, 'stub');
     const result = wirer.wireSkill('my-workflow', entry, cwd, 'stub');
@@ -259,7 +306,7 @@ test('updateGitignore adds tool skill dirs and instruction files', () => {
   try {
     const entries = [
       { skillsDir: '.claude/skills', instructionFile: 'CLAUDE.md' },
-      { skillsDir: '.cursor/skills', instructionFile: 'AGENTS.md' },
+      { skillsDir: '.cursor/rules', instructionFile: 'AGENTS.md', skillTargets: [{ kind: 'cursor-rule', path: '.cursor/rules' }] },
     ];
     const result = wirer.updateGitignore(cwd, entries, 'full');
     assert.equal(result, 'updated');
@@ -278,8 +325,8 @@ test('updateGitignore deduplicates instruction files', () => {
   const cwd = tmpDir();
   try {
     const entries = [
-      { skillsDir: '.codex/skills',   instructionFile: 'AGENTS.md' },
-      { skillsDir: '.cursor/skills',  instructionFile: 'AGENTS.md' }, // same file — Codex, Cursor, Windsurf all share AGENTS.md
+      { skillsDir: '.agents/skills',   instructionFile: 'AGENTS.md', skillTargets: [{ kind: 'skill-dir', path: '.agents/skills' }] },
+      { skillsDir: '.cursor/rules',  instructionFile: 'AGENTS.md', skillTargets: [{ kind: 'cursor-rule', path: '.cursor/rules' }] }, // same file — Codex, Cursor, Windsurf all share AGENTS.md
       { skillsDir: '.windsurf/skills', instructionFile: 'AGENTS.md' },
     ];
     wirer.updateGitignore(cwd, entries, 'full');

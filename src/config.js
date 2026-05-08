@@ -9,7 +9,7 @@ const CONFIG_FILE = '.easyskillz/easyskillz.json';
 
 const DEFAULTS = {
   tools: [],
-  linkStrategy: 'symlink', // 'symlink' | 'stub'
+  linkStrategy: 'symlink', // 'symlink' | 'stub' (copy real content when symlinks fail)
   manageDocs: false, // all-in or all-out instruction file management
   docsStrategy: null, // 'unified' | 'tool-specific' | null (not chosen yet)
   gitignoreStrategy: null, // 'full' | 'conflict-only' | 'none' | null (not chosen yet)

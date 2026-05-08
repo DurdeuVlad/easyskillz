@@ -65,4 +65,4 @@ function isManaged(filePath) {
   return content.includes(MANAGED_OPEN);
 }
 
-module.exports = { writeInstruction, isManaged, MANAGED_OPEN, MANAGED_CLOSE };
+module.exports = { writeInstruction, isManaged, MANAGED_OPEN, MANAGED_CLOSE, MANAGED_BLOCK };
