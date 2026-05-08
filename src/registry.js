@@ -6,6 +6,8 @@ const REGISTRY = {
   claude: {
     id: 'claude',
     name: 'Claude Code',
+    toolDir: '.claude',
+    skillTargets: [{ kind: 'skill-dir', path: '.claude/skills' }],
     skillsDir: '.claude/skills',
     instructionFile: 'CLAUDE.md',
     detectionMarkers: ['.claude/settings.json', '.claude', 'CLAUDE.md'], // auto-created, folder or instruction file
@@ -14,7 +16,9 @@ const REGISTRY = {
   codex: {
     id: 'codex',
     name: 'Codex',
-    skillsDir: '.codex/skills',
+    toolDir: '.codex',
+    skillTargets: [{ kind: 'skill-dir', path: '.agents/skills' }],
+    skillsDir: '.agents/skills',
     instructionFile: 'AGENTS.md',
     detectionMarkers: ['.codex'],         // tool-specific dir
     configFiles: ['.codex/config.json'],
@@ -22,7 +26,9 @@ const REGISTRY = {
   cursor: {
     id: 'cursor',
     name: 'Cursor',
-    skillsDir: '.cursor/skills',
+    toolDir: '.cursor',
+    skillTargets: [{ kind: 'cursor-rule', path: '.cursor/rules' }],
+    skillsDir: '.cursor/rules',
     instructionFile: 'AGENTS.md',
     detectionMarkers: ['.cursor'],        // tool-specific dir
     configFiles: ['.cursor/config.json'],
@@ -30,21 +36,21 @@ const REGISTRY = {
   windsurf: {
     id: 'windsurf',
     name: 'Windsurf',
+    toolDir: '.windsurf',
+    skillTargets: [
+      { kind: 'skill-dir', path: '.windsurf/skills' },
+      { kind: 'windsurf-workflow', path: '.windsurf/workflows' },
+    ],
     skillsDir: '.windsurf/skills',
     instructionFile: 'AGENTS.md',
     detectionMarkers: ['.windsurf', '.windsurf/workflows'], // folder or workflows root
     configFiles: ['.windsurf/settings.json'],
-    // Windsurf supports both skills (folder-based) and workflows (flat .md files)
-    additionalWiring: [
-      {
-        skillsDir: '.windsurf/workflows',
-        type: 'workflows',  // flat .md files instead of folders
-      },
-    ],
   },
   copilot: {
     id: 'copilot',
     name: 'GitHub Copilot',
+    toolDir: '.github',
+    skillTargets: [{ kind: 'skill-dir', path: '.github/skills' }],
     skillsDir: '.github/skills',
     instructionFile: '.github/copilot-instructions.md',
     detectionMarkers: ['.github/copilot-instructions.md', '.github/skills'], // unique files only, not root .github
@@ -53,6 +59,8 @@ const REGISTRY = {
   gemini: {
     id: 'gemini',
     name: 'Gemini CLI',
+    toolDir: '.gemini',
+    skillTargets: [{ kind: 'skill-dir', path: '.gemini/skills' }],
     skillsDir: '.gemini/skills',
     instructionFile: 'GEMINI.md',
     detectionMarkers: ['.gemini/settings.json', '.gemini', 'GEMINI.md'], // folder or instruction file

@@ -40,8 +40,8 @@ class ActivateCommand extends BaseCommand {
       const entry = registry[toolId];
       if (!entry) continue;
       
-      const result = wirer.wireSkill(this.skillName, entry, this.cwd, cfg.linkStrategy);
-      if (result !== 'already') {
+      const results = wirer.wireSkillToAllLocations(this.skillName, entry, this.cwd, cfg.linkStrategy);
+      if (results.some((r) => r.result !== 'already')) {
         wired.push(entry.name);
       }
     }

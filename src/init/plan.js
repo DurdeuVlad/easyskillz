@@ -33,8 +33,8 @@ async function plan(cwd, toolIds, strategy, out, isTTY, skipConfirm = false) {
           const entry = registry[toolId];
           if (!entry) continue;
           const srcPath = path.resolve(cwd, '.easyskillz', 'skills', skill);
-          const toolSkillsDir = path.resolve(cwd, entry.skillsDir);
-          const wired = wirer.isWired(toolSkillsDir, skill, srcPath, strategy, entry);
+          const wired = wirer.getSkillTargets(entry, skill, srcPath)
+            .every((target) => wirer.isTargetWired(cwd, target, srcPath, strategy));
           out(`  ${skill.padEnd(20)} → ${entry.name}: ${wired ? '✓' : '✗ missing'}`);
         }
       }
@@ -59,8 +59,9 @@ async function plan(cwd, toolIds, strategy, out, isTTY, skipConfirm = false) {
     const entry = registry[toolId];
     if (!entry) continue;
     const srcPath = path.resolve(cwd, '.easyskillz', 'skills', META_SKILL);
-    const toolSkillsDir = path.resolve(cwd, entry.skillsDir);
-    if (!wirer.isWired(toolSkillsDir, META_SKILL, srcPath, strategy, entry)) {
+    const wired = wirer.getSkillTargets(entry, META_SKILL, srcPath)
+      .every((target) => wirer.isTargetWired(cwd, target, srcPath, strategy));
+    if (!wired) {
       actions.push({ type: 'wire-meta', entry });
     }
   }

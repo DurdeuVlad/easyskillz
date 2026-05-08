@@ -23,6 +23,7 @@ class UnregisterCommand extends BaseCommand {
     }
 
     const cfg = config.read(this.cwd);
+    const toolRoot = entry.toolDir || entry.skillsDir.split('/')[0];
 
     // Check if tool is registered
     if (!cfg.tools || !cfg.tools.includes(toolId)) {
@@ -53,10 +54,10 @@ class UnregisterCommand extends BaseCommand {
       this.out(`  - Remove "${toolId}" from .easyskillz/easyskillz.json`);
       
       if (selectedMode === 'full') {
-        const toolDir = path.join(this.cwd, entry.skillsDir.split('/')[0]);
+        const toolDir = path.join(this.cwd, toolRoot);
         this.out(`  - Delete ${toolDir}/ directory and all contents`);
       } else {
-        this.out(`  - Keep ${entry.skillsDir.split('/')[0]}/ directory intact`);
+        this.out(`  - Keep ${toolRoot}/ directory intact`);
       }
       this.out('');
     }
@@ -77,7 +78,7 @@ class UnregisterCommand extends BaseCommand {
 
     // If full mode, delete tool directory
     if (selectedMode === 'full') {
-      const toolDir = path.join(this.cwd, entry.skillsDir.split('/')[0]);
+      const toolDir = path.join(this.cwd, toolRoot);
       if (fs.existsSync(toolDir)) {
         fs.rmSync(toolDir, { recursive: true, force: true });
         deletedDir = true;
@@ -96,7 +97,7 @@ class UnregisterCommand extends BaseCommand {
       this.out('');
       this.out(`✓ Unregistered ${entry.name} (${selectedMode} mode)`);
       if (deletedDir) {
-        this.out(`✓ Deleted ${entry.skillsDir.split('/')[0]}/ directory`);
+        this.out(`✓ Deleted ${toolRoot}/ directory`);
       }
     }
   }

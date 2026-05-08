@@ -6,6 +6,24 @@ Format: `## [version] — YYYY-MM-DD` · sections: `Added`, `Fixed`, `Changed`, 
 
 ---
 
+## [0.3.0] — 2026-05-08
+
+### Added
+- Native target generation for current agent behavior: Codex uses `.agents/skills/`, Gemini uses `.gemini/skills/`, Cursor uses `.cursor/rules/*.mdc`, and Windsurf generates both `.windsurf/skills/` and `.windsurf/workflows/*.md`.
+- `easyskillz project doctor` read-only compatibility report with JSON support.
+- E2E scenarios are now part of `npm test`.
+- Research report documenting official agent compatibility gaps.
+
+### Changed
+- Pointer stubs are no longer generated when symlinks fail; easyskillz copies real generated content instead.
+- Instruction file centralization leaves real instruction content at native paths instead of "See:" pointer files.
+- Skill auto-repair now requires a useful `description`, not just syntactically valid frontmatter.
+
+### Fixed
+- Codex no longer writes unsupported `.codex/skills` outputs.
+- Cursor no longer writes unsupported `.cursor/skills` outputs.
+- Centralized docs no longer re-ingest pointer stubs or duplicate managed blocks.
+
 ## [0.2.0] — 2026-04-18
 
 ### Added

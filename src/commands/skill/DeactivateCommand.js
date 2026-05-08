@@ -5,6 +5,7 @@ const path = require('path');
 const BaseCommand = require('../../core/BaseCommand');
 const config = require('../../config');
 const registry = require('../../registry');
+const wirer = require('../../wirer');
 
 class DeactivateCommand extends BaseCommand {
   constructor(skillName, cwd, options) {
@@ -27,31 +28,31 @@ class DeactivateCommand extends BaseCommand {
     if (fs.existsSync(deactivatedPath)) {
       this.error(`Skill "${this.skillName}" is already deactivated`);
     }
+
+    const cfg = config.read(this.cwd);
+    const toolIds = cfg.tools || [];
+    const targetsByTool = toolIds
+      .map((toolId) => registry[toolId])
+      .filter(Boolean)
+      .flatMap((entry) => wirer.getSkillTargets(entry, this.skillName, skillPath));
     
     // Rename to deactivated
     fs.renameSync(skillPath, deactivatedPath);
     
     // Remove symlinks from all registered tools
-    const cfg = config.read(this.cwd);
-    const toolIds = cfg.tools || [];
     let removedCount = 0;
     
-    for (const toolId of toolIds) {
-      const entry = registry[toolId];
-      if (!entry) continue;
-      
-      const toolSkillPath = path.join(this.cwd, entry.skillsDir, this.skillName);
-      
-      if (fs.existsSync(toolSkillPath)) {
-        try {
-          const stats = fs.lstatSync(toolSkillPath);
-          if (stats.isSymbolicLink() || stats.isDirectory()) {
-            fs.rmSync(toolSkillPath, { recursive: true, force: true });
-            removedCount++;
-          }
-        } catch (e) {
-          // Ignore errors
+    for (const target of targetsByTool) {
+      const toolSkillPath = path.join(this.cwd, target.targetPath);
+      if (!fs.existsSync(toolSkillPath)) continue;
+      try {
+        const stats = fs.lstatSync(toolSkillPath);
+        if (stats.isSymbolicLink() || stats.isDirectory() || stats.isFile()) {
+          fs.rmSync(toolSkillPath, { recursive: true, force: true });
+          removedCount++;
         }
+      } catch (e) {
+        // Ignore errors
       }
     }
     

@@ -31,7 +31,8 @@ describe('E2E Scenarios', () => {
     const result = runEZ('project sync --confirm --docs=no --gitignore=smart', repoPath);
     assert.ok(result.ok, 'Sync failed: ' + result.output);
     assert.ok(fs.existsSync(path.join(repoPath, '.claude/skills/skill-1')), 'Claude skill missing');
-    assert.ok(fs.existsSync(path.join(repoPath, '.cursor/skills/skill-1')), 'Cursor skill missing');
+    assert.ok(fs.existsSync(path.join(repoPath, '.cursor/rules/skill-1.mdc')), 'Cursor rule missing');
+    assert.ok(!fs.existsSync(path.join(repoPath, '.cursor/skills/skill-1')), 'Legacy Cursor skill target should not exist');
     const gitignore = fs.readFileSync(path.join(repoPath, '.gitignore'), 'utf8');
     assert.ok(gitignore.includes('# easyskillz-start'), 'Gitignore missing markers');
   });
@@ -45,6 +46,7 @@ describe('E2E Scenarios', () => {
     assert.ok(result.ok, 'Registration failed');
     assert.ok(fs.existsSync(path.join(repoPath, '.windsurf/skills')), 'Windsurf skills folder missing');
     assert.ok(fs.existsSync(path.join(repoPath, '.windsurf/workflows')), 'Windsurf workflows folder missing');
+    assert.ok(fs.existsSync(path.join(repoPath, '.windsurf/workflows/easyskillz-reference.md')), 'Windsurf workflow missing');
   });
 
   test('Scenario 3: Surgical Gitignore (Protect unmanaged files)', () => {
@@ -88,6 +90,7 @@ describe('E2E Scenarios', () => {
     runEZ('project sync --confirm --docs=no --gitignore=smart', repoPath);
     const content = fs.readFileSync(path.join(skillPath, 'SKILL.md'), 'utf8');
     assert.ok(content.startsWith('---'), 'YAML frontmatter not injected');
+    assert.ok(fs.existsSync(path.join(repoPath, '.gemini/skills/broken/SKILL.md')), 'Gemini should use .gemini/skills');
   });
 
   test('Scenario 6: The Clean Break (Unregister Full)', () => {
@@ -113,6 +116,7 @@ describe('E2E Scenarios', () => {
     runEZ('project sync --confirm --docs=yes --docs-strategy=unified --gitignore=full', repoPath);
     assert.ok(fs.existsSync(path.join(repoPath, '.easyskillz/docs/INSTRUCTION.md')), 'Centralized doc missing');
     assert.ok(isLinked(path.join(repoPath, 'CLAUDE.md')), 'Original file should be linked');
+    assert.ok(!fs.readFileSync(path.join(repoPath, 'CLAUDE.md'), 'utf8').includes('<!-- See:'), 'Original file should not be a pointer stub');
   });
 
   test('Scenario 9: Nested Docs Migrator (Tool-Specific)', () => {
@@ -124,6 +128,7 @@ describe('E2E Scenarios', () => {
     runEZ('project sync --confirm --docs=yes --docs-strategy=tool-specific --gitignore=full', repoPath);
     assert.ok(fs.existsSync(path.join(repoPath, '.easyskillz/docs/src/api/CLAUDE.md')), 'Centralized nested doc missing');
     assert.ok(isLinked(path.join(nestedDir, 'CLAUDE.md')), 'Nested file should be linked');
+    assert.ok(!fs.readFileSync(path.join(nestedDir, 'CLAUDE.md'), 'utf8').includes('<!-- See:'), 'Nested file should not be a pointer stub');
   });
 
   test('Scenario 10: The Case-Insensitive Developer', () => {
@@ -223,9 +228,14 @@ describe('E2E Scenarios', () => {
   test('Scenario 19: Codex Explicit Test', () => {
     repoPath = setupRepo();
     mockTool(repoPath, 'codex');
+    const skillPath = path.join(repoPath, '.easyskillz/skills/codex-skill');
+    fs.mkdirSync(skillPath, { recursive: true });
+    fs.writeFileSync(path.join(skillPath, 'SKILL.md'), '# codex skill', 'utf8');
     runEZ('project sync --confirm --docs=no --gitignore=smart', repoPath);
     const cfg = JSON.parse(fs.readFileSync(path.join(repoPath, '.easyskillz/easyskillz.json'), 'utf8'));
     assert.ok(cfg.tools.includes('codex'), 'Codex not registered');
+    assert.ok(fs.existsSync(path.join(repoPath, '.agents/skills/codex-skill')), 'Codex should use .agents/skills');
+    assert.ok(!fs.existsSync(path.join(repoPath, '.codex/skills/codex-skill')), 'Legacy Codex skill target should not exist');
   });
 
   test('Scenario 20: AI Friendliness (JSON Output)', () => {
@@ -247,5 +257,18 @@ describe('E2E Scenarios', () => {
     const result = runEZ('project sync --confirm --docs=no --gitignore=smart', repoPath);
     assert.ok(result.ok, 'Second sync failed: ' + result.output);
     assert.ok(result.output.includes('wired') || result.output.includes('already wired') || result.output.includes('Nothing to do'), 'Should handle repeat sync');
+  });
+
+  test('Scenario 22: Doctor reports stale targets and pointer stubs', () => {
+    repoPath = setupRepo();
+    fs.mkdirSync(path.join(repoPath, '.codex/skills'), { recursive: true });
+    fs.mkdirSync(path.join(repoPath, '.cursor/skills'), { recursive: true });
+    fs.writeFileSync(path.join(repoPath, 'AGENTS.md'), '<!-- Managed by easyskillz -->\n<!-- See: somewhere -->\n', 'utf8');
+    const result = runEZ('project doctor --json', repoPath);
+    assert.ok(result.ok, 'Doctor failed: ' + result.output);
+    const data = JSON.parse(result.output);
+    const codes = data.issues.map((issue) => issue.code);
+    assert.ok(codes.includes('stale-target'), 'Doctor should report stale targets');
+    assert.ok(codes.includes('pointer-instruction'), 'Doctor should report pointer instruction files');
   });
 });

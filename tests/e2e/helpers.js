@@ -41,6 +41,7 @@ function mockTool(repoPath, toolId) {
   const marker = entry.detectionMarkers[0];
   const markerPath = path.join(repoPath, marker);
   if (marker.endsWith('.json')) {
+    fs.mkdirSync(path.dirname(markerPath), { recursive: true });
     fs.writeFileSync(markerPath, '{}', 'utf8');
   } else if (!fs.existsSync(markerPath)) {
     fs.mkdirSync(markerPath, { recursive: true });

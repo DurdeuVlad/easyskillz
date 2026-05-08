@@ -1,6 +1,7 @@
 'use strict';
 
 const SyncCommand = require('../commands/project/SyncCommand');
+const DoctorCommand = require('../commands/project/DoctorCommand');
 const exportCmd = require('../commands/export');
 
 async function project({ action, args, flags, cwd, isTTY }) {
@@ -10,6 +11,12 @@ async function project({ action, args, flags, cwd, isTTY }) {
   switch (action) {
     case 'sync': {
       const cmd = new SyncCommand(options);
+      await cmd.execute();
+      break;
+    }
+
+    case 'doctor': {
+      const cmd = new DoctorCommand(options);
       await cmd.execute();
       break;
     }
@@ -28,7 +35,7 @@ async function project({ action, args, flags, cwd, isTTY }) {
     default:
       console.error(`Error: unknown project action "${action}"`);
       console.error('');
-      console.error('Available actions: sync, export');
+      console.error('Available actions: sync, doctor, export');
       process.exit(1);
   }
 }
