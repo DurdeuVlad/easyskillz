@@ -11,10 +11,11 @@
 
 ![easyskillz project sync in action](./docs/images/easyskillz-sync.svg)
 
-</div>
 ## 🧩 Seamless Integration
 
 Edit your skills once in `.easyskillz/skills/` and they are instantly synchronized across all your editors and agents:
+
+</div>
 
 <p align="center">
   <img src="./docs/images/supported-tools.svg" alt="Supported AI Tools" width="100%" />
