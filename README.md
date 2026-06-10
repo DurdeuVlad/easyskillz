@@ -12,17 +12,14 @@
 ![easyskillz project sync in action](./docs/images/easyskillz-sync.svg)
 
 </div>
+## 🧩 Seamless Integration
 
-### 🧩 Seamless Integration with:
-![Supported Tools](./docs/images/supported-tools.svg)
+Edit your skills once in `.easyskillz/skills/` and they are instantly synchronized across all your editors and agents:
 
----
+<p align="center">
+  <img src="./docs/images/supported-tools.svg" alt="Supported AI Tools" width="100%" />
+</p>
 
-📖 **[Developer Wiki](docs/wiki/Home.md)**: Guidelines on contributing, understanding the codebase, and creating issues.
-
-> **For AI Assistants**: Read [INSTALL-SKILL.md](INSTALL-SKILL.md) for installation instructions.
-
----
 
 ## The Problem
 
@@ -57,6 +54,8 @@ npm install -g easyskillz
 ```bash
 npm install -g easyskillz@alpha
 ```
+
+> **For AI Assistants**: Read [INSTALL-SKILL.md](INSTALL-SKILL.md) for installation instructions.
 
 ---
 
@@ -200,6 +199,7 @@ easyskillz is designed to "just work." It handles several complex AI tool behavi
 | GitHub Copilot | `.github/skills/` | `.github/copilot-instructions.md` |
 | Antigravity | `.gemini/skills/` + `.agents/skills/` | `GEMINI.md` |
 | Devin | `.devin/skills/` | `AGENTS.md` |
+| Windsurf | `.windsurf/skills/` + `.windsurf/workflows` | `AGENTS.md` |
 
 ---
 
@@ -287,6 +287,8 @@ Your AI agents will use the CLI to create skills and manage instruction files. T
 ---
 
 ## Contributing
+
+📖 **[Developer Wiki](docs/wiki/Home.md)**: Guidelines on contributing, understanding the codebase, and creating issues.
 
 Adding a new tool is a one-PR contribution:
 
