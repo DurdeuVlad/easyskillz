@@ -164,6 +164,23 @@ test('wireSkill writes Devin skills to .devin/skills', () => {
   }
 });
 
+test('Antigravity dual target: wires to BOTH .gemini/skills/ AND .agents/skills/', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'antigravity-skill');
+    const entry = require('../src/registry').gemini;
+    
+    assert.equal(entry.name, 'Antigravity');
+    const result = wirer.wireSkill('antigravity-skill', entry, cwd, 'stub');
+    
+    assert.equal(result, 'wired');
+    assert.ok(fs.existsSync(path.join(cwd, '.gemini', 'skills', 'antigravity-skill', 'SKILL.md')));
+    assert.ok(fs.existsSync(path.join(cwd, '.agents', 'skills', 'antigravity-skill', 'SKILL.md')));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
 test('Windsurf — regular skill: only .windsurf/skills/, NO workflow file', () => {
   const cwd = tmpDir();
   try {

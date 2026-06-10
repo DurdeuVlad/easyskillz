@@ -188,13 +188,14 @@ easyskillz is designed to "just work." It handles several complex AI tool behavi
 ## Supported Tools
 
 | Tool | Generated Target | Instruction File |
-|------|-------------|-----------------|
+|------|-----------------|-----------------|
 | Claude Code | `.claude/skills/` | `CLAUDE.md` |
 | Codex | `.agents/skills/` | `AGENTS.md` |
 | Cursor | `.cursor/rules/*.mdc` | `AGENTS.md` |
-| Windsurf | `.windsurf/skills/` plus `.windsurf/workflows/*.md` | `AGENTS.md` |
+| Windsurf | `.windsurf/skills/` + `.windsurf/workflows/*.md` *(workflow skills only)* | `AGENTS.md` |
 | GitHub Copilot | `.github/skills/` | `.github/copilot-instructions.md` |
-| Gemini CLI | `.gemini/skills/` | `GEMINI.md` |
+| Antigravity | `.gemini/skills/` + `.agents/skills/` | `GEMINI.md` |
+| Devin | `.devin/skills/` | `AGENTS.md` |
 
 ---
 
