@@ -425,3 +425,52 @@ test('updateGitignore is idempotent', () => {
     cleanup(cwd);
   }
 });
+
+test('isTargetWired returns true when adapter matches (T9)', () => {
+  const cwd = tmpDir();
+  try {
+    const targetDir = path.join(cwd, '.claude', 'skills');
+    const targetPath = path.join(targetDir, 'review-pr');
+    fs.mkdirSync(targetPath, { recursive: true });
+    
+    const parsed = { frontmatter: { name: 'review-pr', description: 'desc' }, body: 'body' };
+    const entry = { id: 'claude', skillsDir: '.claude/skills' };
+    const content = wirer.renderSkillAdapter(entry, 'review-pr', parsed);
+    fs.writeFileSync(path.join(targetPath, 'SKILL.md'), content, 'utf8');
+    
+    const target = {
+      kind: 'skill-dir',
+      targetPath: '.claude/skills/review-pr',
+      entry,
+      parsed
+    };
+    
+    assert.ok(wirer.isTargetWired(cwd, target, '', 'stub'));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('isTargetWired returns false when adapter stale or missing (T10)', () => {
+  const cwd = tmpDir();
+  try {
+    const targetDir = path.join(cwd, '.claude', 'skills');
+    const targetPath = path.join(targetDir, 'review-pr');
+    fs.mkdirSync(targetPath, { recursive: true });
+    fs.writeFileSync(path.join(targetPath, 'SKILL.md'), 'stale content', 'utf8');
+    
+    const parsed = { frontmatter: { name: 'review-pr', description: 'desc' }, body: 'body' };
+    const entry = { id: 'claude', skillsDir: '.claude/skills' };
+    
+    const target = {
+      kind: 'skill-dir',
+      targetPath: '.claude/skills/review-pr',
+      entry,
+      parsed
+    };
+    
+    assert.equal(wirer.isTargetWired(cwd, target, '', 'stub'), false);
+  } finally {
+    cleanup(cwd);
+  }
+});

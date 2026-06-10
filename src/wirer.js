@@ -183,6 +183,23 @@ function isTargetWired(cwd, target, srcPath, strategy) {
   const absoluteTarget = path.resolve(cwd, target.targetPath);
   if (!fs.existsSync(absoluteTarget)) return false;
 
+  if (target.kind === 'skill-dir') {
+    const adapterPath = path.join(absoluteTarget, 'SKILL.md');
+    if (!fs.existsSync(adapterPath)) return false;
+    const content = fs.readFileSync(adapterPath, 'utf8');
+    const expected = renderSkillAdapter(target.entry || {}, path.basename(target.targetPath), target.parsed);
+    if (content === expected) return true;
+    
+    // Fallback for raw content (pre-migration)
+    if (srcPath) {
+      const sourceSkill = path.join(srcPath, 'SKILL.md');
+      if (fs.existsSync(sourceSkill) && content === fs.readFileSync(sourceSkill, 'utf8')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   if (target.kind === 'cursor-rule' || target.kind === 'windsurf-workflow') {
     const content = fs.readFileSync(absoluteTarget, 'utf8');
     const expected = target.kind === 'cursor-rule'
