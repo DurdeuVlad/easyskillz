@@ -66,6 +66,16 @@ const REGISTRY = {
     detectionMarkers: ['.gemini/settings.json', '.gemini', 'GEMINI.md'], // folder or instruction file
     configFiles: ['.gemini/settings.json'],
   },
+  devin: {
+    id: 'devin',
+    name: 'Devin',
+    toolDir: '.devin',
+    skillTargets: [{ kind: 'skill-dir', path: '.devin/skills' }],
+    skillsDir: '.devin/skills',
+    instructionFile: 'AGENTS.md',
+    detectionMarkers: ['.devin'],
+    configFiles: ['.devin/settings.json'],
+  },
 };
 
 module.exports = REGISTRY;
