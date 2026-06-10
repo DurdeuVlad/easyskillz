@@ -163,6 +163,22 @@ function renderWindsurfWorkflow(skillName, parsed) {
   ].join('\n');
 }
 
+function renderSkillAdapter(toolEntry, skillName, parsed) {
+  const name = parsed.frontmatter.name || skillName;
+  const description = parsed.frontmatter.description || meaningfulDescription(skillName);
+  const centralPath = path.join('.easyskillz', 'skills', skillName, 'SKILL.md').replace(/\\/g, '/');
+  return [
+    '---',
+    `name: ${name}`,
+    `description: ${description}`,
+    '---',
+    GENERATED_MARKER,
+    '',
+    `Read the full skill instructions from: \`${centralPath}\``,
+    '',
+  ].join('\n');
+}
+
 function isTargetWired(cwd, target, srcPath, strategy) {
   const absoluteTarget = path.resolve(cwd, target.targetPath);
   if (!fs.existsSync(absoluteTarget)) return false;
@@ -325,4 +341,5 @@ module.exports = {
   appendInstruction,
   updateGitignore,
   GENERATED_MARKER,
+  renderSkillAdapter,
 };
