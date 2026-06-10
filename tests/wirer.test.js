@@ -151,6 +151,19 @@ test('wireSkill writes Cursor rules instead of skill directories', () => {
   }
 });
 
+test('wireSkill writes Devin skills to .devin/skills', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'devin-skill');
+    const entry = require('../src/registry').devin;
+    assert.ok(entry);
+    wirer.wireSkill('devin-skill', entry, cwd, 'stub');
+    assert.ok(fs.existsSync(path.join(cwd, '.devin', 'skills', 'devin-skill', 'SKILL.md')));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
 test('wireSkill workflow type creates flat .md file not directory', () => {
   const cwd = tmpDir();
   try {

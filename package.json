@@ -29,7 +29,8 @@
     "copilot",
     "gemini",
     "windsurf",
-    "agent"
+    "agent",
+    "devin"
   ],
   "license": "MIT",
   "repository": {
