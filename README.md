@@ -3,7 +3,7 @@
 # 🧠 easyskillz
 
 [![npm version](https://img.shields.io/npm/v/easyskillz?style=flat)](https://www.npmjs.com/package/easyskillz)
-[![license](https://img.shields.io/badge/license-MIT-blue?style=flat)](LICENSE)
+[![license](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![last commit](https://img.shields.io/github/last-commit/DurdeuVlad/easyskillz?style=flat)](https://github.com/DurdeuVlad/easyskillz/commits/main)
 
 **🧠 easyskillz: The missing link between AI coding assistants & local workspaces.**  
