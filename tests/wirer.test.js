@@ -164,6 +164,41 @@ test('wireSkill writes Devin skills to .devin/skills', () => {
   }
 });
 
+test('Windsurf — regular skill: only .windsurf/skills/, NO workflow file', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'regular-skill');
+    const entry = require('../src/registry').windsurf;
+    wirer.wireSkill('regular-skill', entry, cwd, 'stub');
+    
+    assert.ok(fs.existsSync(path.join(cwd, '.windsurf', 'skills', 'regular-skill', 'SKILL.md')));
+    assert.ok(!fs.existsSync(path.join(cwd, '.windsurf', 'workflows', 'regular-skill.md')));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('Windsurf — workflow skill: both targets created', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'workflow-skill');
+    fs.writeFileSync(path.join(cwd, '.easyskillz', 'skills', 'workflow-skill', 'SKILL.md'), [
+      '---',
+      'type: workflow',
+      '---',
+      '# workflow-skill'
+    ].join('\n'), 'utf8');
+
+    const entry = require('../src/registry').windsurf;
+    wirer.wireSkill('workflow-skill', entry, cwd, 'stub');
+
+    assert.ok(fs.existsSync(path.join(cwd, '.windsurf', 'skills', 'workflow-skill', 'SKILL.md')));
+    assert.ok(fs.existsSync(path.join(cwd, '.windsurf', 'workflows', 'workflow-skill.md')));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
 test('wireSkill workflow type creates flat .md file not directory', () => {
   const cwd = tmpDir();
   try {

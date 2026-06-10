@@ -39,7 +39,7 @@ const REGISTRY = {
     toolDir: '.windsurf',
     skillTargets: [
       { kind: 'skill-dir', path: '.windsurf/skills' },
-      { kind: 'windsurf-workflow', path: '.windsurf/workflows' },
+      { kind: 'windsurf-workflow', path: '.windsurf/workflows', when: 'workflow' },
     ],
     skillsDir: '.windsurf/skills',
     instructionFile: 'AGENTS.md',
