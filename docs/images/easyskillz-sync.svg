@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" width="100%" height="380" style="background: transparent; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <defs>
+    <style>
+      .terminal {
+        fill: #0d1117;
+        stroke: #30363d;
+        stroke-width: 1.5;
+        rx: 8;
+      }
+      .header {
+        fill: #161b22;
+        rx: 8;
+      }
+      .dot {
+        rx: 5;
+        ry: 5;
+      }
+      .dot-red { fill: #ff5f56; }
+      .dot-yellow { fill: #ffbd2e; }
+      .dot-green { fill: #27c93f; }
+      .title-text {
+        fill: #8b949e;
+        font-size: 13px;
+        font-weight: 500;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      .term-text {
+        font-family: 'Fira Code', 'Courier New', Courier, monospace;
+        font-size: 14px;
+        fill: #c9d1d9;
+      }
+      .prompt { fill: #58a6ff; font-weight: bold; }
+      .cmd { fill: #f0883e; }
+      .success { fill: #3fb950; font-weight: bold; }
+      .dim { fill: #8b949e; }
+      .check { fill: #3fb950; }
+      .cross { fill: #f85149; }
+
+      /* Animations */
+      .typing {
+        width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        border-right: .15em solid #58a6ff;
+        animation: 
+          typing-anim 1.5s steps(23, end) 0.5s forwards,
+          blink-caret 0.75s step-end infinite;
+      }
+      
+      @keyframes typing-anim {
+        from { width: 0 }
+        to { width: 100% }
+      }
+      @keyframes blink-caret {
+        from, to { border-color: transparent }
+        50% { border-color: #58a6ff }
+      }
+
+      .line {
+        opacity: 0;
+        animation: fade-in 0.4s ease-out forwards;
+      }
+
+      .l1 { animation-delay: 2.2s; }
+      .l2 { animation-delay: 2.6s; }
+      .l3 { animation-delay: 2.9s; }
+      .l4 { animation-delay: 3.2s; }
+      .l5 { animation-delay: 3.5s; }
+      .l6 { animation-delay: 3.8s; }
+      .l7 { animation-delay: 4.4s; }
+      .l8 { animation-delay: 4.8s; }
+      .l9 { animation-delay: 5.2s; }
+      .l10 { animation-delay: 5.6s; }
+
+      @keyframes fade-in {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    </style>
+  </defs>
+
+  <!-- Terminal window background -->
+  <rect x="10" y="10" width="680" height="360" class="terminal" />
+  
+  <!-- Terminal header bar -->
+  <path d="M 10 18 A 8 8 0 0 1 18 10 L 682 10 A 8 8 0 0 1 690 18 L 690 45 L 10 45 Z" class="header" />
+  
+  <!-- Window Controls -->
+  <circle cx="30" cy="28" r="6" class="dot dot-red" />
+  <circle cx="50" cy="28" r="6" class="dot dot-yellow" />
+  <circle cx="70" cy="28" r="6" class="dot dot-green" />
+  
+  <!-- Terminal Window Title -->
+  <text x="350" y="32" text-anchor="middle" class="title-text">easyskillz — sync@terminal</text>
+
+  <!-- Terminal Contents -->
+  <g class="term-text" transform="translate(30, 80)">
+    <!-- Prompt & Typing Command -->
+    <text x="0" y="0">
+      <tspan class="prompt">user@workspace:~$ </tspan>
+      <tspan class="cmd">easyskillz project sync</tspan>
+    </text>
+
+    <!-- Sync Outputs -->
+    <g class="line l1" transform="translate(0, 30)">
+      <text x="0" y="0" class="dim">Scanning for AI tools in project root...</text>
+    </g>
+    <g class="line l2" transform="translate(20, 55)">
+      <text x="0" y="0"><tspan class="check">✓</tspan> Claude Code      <tspan class="dim">(.claude/skills)</tspan></text>
+    </g>
+    <g class="line l3" transform="translate(20, 75)">
+      <text x="0" y="0"><tspan class="check">✓</tspan> Cursor           <tspan class="dim">(.cursorrules)</tspan></text>
+    </g>
+    <g class="line l4" transform="translate(20, 95)">
+      <text x="0" y="0"><tspan class="check">✓</tspan> Devin            <tspan class="dim">(.devin/skills)</tspan></text>
+    </g>
+    <g class="line l5" transform="translate(20, 115)">
+      <text x="0" y="0"><tspan class="check">✓</tspan> Antigravity      <tspan class="dim">(.gemini/skills &amp; .agents/skills)</tspan></text>
+    </g>
+    <g class="line l6" transform="translate(20, 135)">
+      <text x="0" y="0"><tspan class="cross">✗</tspan> Windsurf         <tspan class="dim">(not detected)</tspan></text>
+    </g>
+
+    <g class="line l7" transform="translate(0, 175)">
+      <text x="0" y="0" class="dim">Testing symlink support &amp; generating adapter stubs...</text>
+    </g>
+    <g class="line l8" transform="translate(20, 200)">
+      <text x="0" y="0"><tspan class="check">✓</tspan> Created real folder + adapter SKILL.md for Devin</text>
+    </g>
+    <g class="line l9" transform="translate(20, 220)">
+      <text x="0" y="0"><tspan class="check">✓</tspan> Wired symlink pointers for Claude Code &amp; Antigravity</text>
+    </g>
+    
+    <!-- Success Statement -->
+    <g class="line l10" transform="translate(0, 260)">
+      <text x="0" y="0"><tspan class="success">Done.</tspan> Project context sync complete! 4 tools wired. ✨</text>
+    </g>
+  </g>
+</svg>
