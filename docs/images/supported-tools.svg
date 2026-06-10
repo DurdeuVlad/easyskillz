@@ -6,11 +6,6 @@
         stroke: #30363d;
         stroke-width: 1.5;
         rx: 10;
-        transition: all 0.3s ease;
-      }
-      .card:hover {
-        stroke: #58a6ff;
-        fill: #1c2128;
       }
       .title {
         fill: #f0f6fc;
@@ -23,49 +18,49 @@
         font-size: 11px;
         text-anchor: middle;
       }
-      .icon {
-        font-size: 24px;
-        text-anchor: middle;
-      }
     </style>
   </defs>
 
-  <!-- Card 1: Claude Code -->
+  <!-- Card 1: Claude Code (Minimalist Anthropic A Logo) -->
   <g transform="translate(10, 10)">
     <rect width="140" height="90" class="card" />
-    <text x="70" y="38" class="icon">🤖</text>
+    <path d="M 58,40 L 70,18 L 82,40 M 63,33 L 77,33" stroke="#f0883e" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" />
     <text x="70" y="62" class="title">Claude Code</text>
     <text x="70" y="77" class="sub">.claude/skills</text>
   </g>
 
-  <!-- Card 2: Cursor -->
+  <!-- Card 2: Cursor (Sleek pointing cursor) -->
   <g transform="translate(162, 10)">
     <rect width="140" height="90" class="card" />
-    <text x="70" y="38" class="icon">🚀</text>
+    <path d="M 62,18 L 80,31 L 73,33 L 81,44 L 76,47 L 68,36 L 62,41 Z" fill="#58a6ff" />
     <text x="70" y="62" class="title">Cursor</text>
     <text x="70" y="77" class="sub">.cursor/rules</text>
   </g>
 
-  <!-- Card 3: Devin -->
+  <!-- Card 3: Devin (Cognition green D badge) -->
   <g transform="translate(314, 10)">
     <rect width="140" height="90" class="card" />
-    <text x="70" y="38" class="icon">🧠</text>
+    <circle cx="70" cy="30" r="13" fill="#2ea44f" />
+    <path d="M 64,23 L 71,23 A 7,7 0 0 1 71,37 L 64,37 Z" fill="none" stroke="#ffffff" stroke-width="2.5" />
     <text x="70" y="62" class="title">Devin</text>
     <text x="70" y="77" class="sub">.devin/skills</text>
   </g>
 
-  <!-- Card 4: Gemini / Antigravity -->
+  <!-- Card 4: Gemini / Antigravity (Violet Sparkle) -->
   <g transform="translate(466, 10)">
     <rect width="140" height="90" class="card" />
-    <text x="70" y="38" class="icon">♊</text>
+    <path d="M 70,16 Q 70,30 56,30 Q 70,30 70,44 Q 70,30 84,30 Q 70,30 70,16 Z" fill="#a371f7" />
     <text x="70" y="62" class="title">Antigravity</text>
     <text x="70" y="77" class="sub">.gemini/skills</text>
   </g>
 
-  <!-- Card 5: GitHub Copilot -->
+  <!-- Card 5: GitHub Copilot (Sleek robot head) -->
   <g transform="translate(618, 10)">
     <rect width="140" height="90" class="card" />
-    <text x="70" y="38" class="icon">💻</text>
+    <path d="M 60,28 C 60,22 64,18 70,18 C 76,18 80,22 80,28 C 80,34 76,38 70,38 C 64,38 60,34 60,28 Z" fill="#2188ff" />
+    <circle cx="66" cy="28" r="2" fill="#ffffff" />
+    <circle cx="74" cy="28" r="2" fill="#ffffff" />
+    <path d="M 67,33 L 73,33" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" />
     <text x="70" y="62" class="title">GitHub Copilot</text>
     <text x="70" y="77" class="sub">.github/skills</text>
   </g>
