@@ -45,8 +45,7 @@ describe('E2E Scenarios', () => {
     const result = runEZ('tool register windsurf --confirm', repoPath);
     assert.ok(result.ok, 'Registration failed');
     assert.ok(fs.existsSync(path.join(repoPath, '.windsurf/skills')), 'Windsurf skills folder missing');
-    assert.ok(fs.existsSync(path.join(repoPath, '.windsurf/workflows')), 'Windsurf workflows folder missing');
-    assert.ok(fs.existsSync(path.join(repoPath, '.windsurf/workflows/easyskillz-reference.md')), 'Windsurf workflow missing');
+    assert.ok(!fs.existsSync(path.join(repoPath, '.windsurf/workflows/easyskillz-reference.md')), 'Windsurf workflow should not be created for regular meta-skill');
   });
 
   test('Scenario 3: Surgical Gitignore (Protect unmanaged files)', () => {
