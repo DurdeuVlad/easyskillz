@@ -6,19 +6,11 @@
 [![license](https://img.shields.io/github/license/DurdeuVlad/easyskillz?style=flat)](LICENSE)
 [![last commit](https://img.shields.io/github/last-commit/DurdeuVlad/easyskillz?style=flat)](https://github.com/DurdeuVlad/easyskillz/commits/main)
 
-**🧠 easyskillz — The missing link between AI coding assistants & local workspaces.**  
-*Share custom rules, skills, and prompts across Claude Code, Cursor, Windsurf, Devin, and Gemini instantly.*
+**Simple, easy to use and brings order to AI agent chaos.**
 
-![easyskillz project sync in action](./docs/images/easyskillz-sync.svg)
+*One folder. All your tools. Zero repetition.*
 
 </div>
-
-### 🧩 Seamless Integration with:
-| Claude Code | Cursor | Devin | Windsurf | Gemini / Antigravity | GitHub Copilot |
-| :---: | :---: | :---: | :---: | :---: | :---: |
-| 🤖 | 🚀 | 🧠 | 🌊 | ♊ | 💻 |
-
----
 
 📖 **[Developer Wiki](docs/wiki/Home.md)**: Guidelines on contributing, understanding the codebase, and creating issues.
 
