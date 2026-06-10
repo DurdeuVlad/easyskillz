@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const registry = require('../registry');
-const { MANAGED_OPEN, MANAGED_CLOSE, MANAGED_BLOCK } = require('./syncFolder');
+const { MANAGED_OPEN, MANAGED_CLOSE, managedBlock } = require('./syncFolder');
 
 const DOCS_DIR = '.easyskillz/docs';
 const POINTER_RE = /^<!-- Managed by easyskillz -->\s*<!-- See: .*? -->\s*$/s;
@@ -35,9 +35,10 @@ function cleanInstructionContent(content) {
   return stripManagedBlock(trimmed);
 }
 
-function composeManagedContent(parts) {
+function composeManagedContent(parts, toolEntry) {
   const body = parts.map((part) => part.trim()).filter(Boolean).join('\n\n');
-  return body ? `${body}\n\n${MANAGED_BLOCK}\n` : `${MANAGED_BLOCK}\n`;
+  const block = managedBlock(toolEntry);
+  return body ? `${body}\n\n${block}\n` : `${block}\n`;
 }
 
 function replaceWithManagedFile(filePath, centralFile, content) {
@@ -98,7 +99,12 @@ function centralizeToolSpecific(cwd, scannedFiles) {
       if (!fs.existsSync(filePath)) continue;
 
       const cleaned = cleanInstructionContent(fs.readFileSync(filePath, 'utf8'));
-      const centralContent = composeManagedContent(cleaned ? [`<!-- From ${fileName} -->\n${cleaned}`] : []);
+      const tool = getToolForFile(fileName);
+      const toolEntry = tool ? tool.entry : null;
+      const centralContent = composeManagedContent(
+        cleaned ? [`<!-- From ${fileName} -->\n${cleaned}`] : [],
+        toolEntry
+      );
 
       fs.mkdirSync(docsPath, { recursive: true });
       fs.writeFileSync(centralFile, centralContent, 'utf8');
