@@ -188,16 +188,7 @@ function isTargetWired(cwd, target, srcPath, strategy) {
     if (!fs.existsSync(adapterPath)) return false;
     const content = fs.readFileSync(adapterPath, 'utf8');
     const expected = renderSkillAdapter(target.entry || {}, path.basename(target.targetPath), target.parsed);
-    if (content === expected) return true;
-    
-    // Fallback for raw content (pre-migration)
-    if (srcPath) {
-      const sourceSkill = path.join(srcPath, 'SKILL.md');
-      if (fs.existsSync(sourceSkill) && content === fs.readFileSync(sourceSkill, 'utf8')) {
-        return true;
-      }
-    }
-    return false;
+    return content === expected;
   }
 
   if (target.kind === 'cursor-rule' || target.kind === 'windsurf-workflow') {
@@ -276,6 +267,14 @@ function wireSkill(skillName, toolEntry, cwd, strategy, skipAutoRepair = false) 
 
     if (target.kind === 'windsurf-workflow') {
       fs.writeFileSync(absoluteTarget, renderWindsurfWorkflow(skillName, target.parsed), 'utf8');
+      changed = true;
+      continue;
+    }
+
+    if (target.kind === 'skill-dir') {
+      fs.mkdirSync(absoluteTarget, { recursive: true });
+      const adapterContent = renderSkillAdapter(target.entry || {}, skillName, target.parsed);
+      fs.writeFileSync(path.join(absoluteTarget, 'SKILL.md'), adapterContent, 'utf8');
       changed = true;
       continue;
     }
