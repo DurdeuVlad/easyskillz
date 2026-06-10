@@ -1,0 +1,68 @@
+name: Publish Package
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: npm install
+      - name: Run tests
+        run: npm test
+
+  publish:
+    name: Publish to NPM
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check and Publish
+        run: |
+          # Extract local version from package.json
+          LOCAL_VERSION=$(node -p "require('./package.json').version")
+          echo "Local version is: $LOCAL_VERSION"
+
+          # Check if the specific version is already published on npm
+          if npm view "easyskillz@$LOCAL_VERSION" version >/dev/null 2>&1; then
+            echo "Version $LOCAL_VERSION is already published on npm. Skipping publication."
+          else
+            echo "Version $LOCAL_VERSION is not published. Proceeding to publish securely..."
+            
+            # Determine appropriate distribution tag (e.g. 0.4.0-alpha.0 -> tag 'alpha')
+            if [[ "$LOCAL_VERSION" =~ -([a-zA-Z]+) ]]; then
+              TAG="${BASH_REMATCH[1]}"
+              echo "Prerelease version detected. Publishing with tag: $TAG"
+              npm publish --tag "$TAG" --provenance
+            else
+              echo "Release version detected. Publishing with default tag: latest"
+              npm publish --provenance
+            fi
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -163,9 +163,33 @@ function renderWindsurfWorkflow(skillName, parsed) {
   ].join('\n');
 }
 
+function renderSkillAdapter(toolEntry, skillName, parsed) {
+  const name = parsed.frontmatter.name || skillName;
+  const description = parsed.frontmatter.description || meaningfulDescription(skillName);
+  const centralPath = path.join('.easyskillz', 'skills', skillName, 'SKILL.md').replace(/\\/g, '/');
+  return [
+    '---',
+    `name: ${name}`,
+    `description: ${description}`,
+    '---',
+    GENERATED_MARKER,
+    '',
+    `Read the full skill instructions from: \`${centralPath}\``,
+    '',
+  ].join('\n');
+}
+
 function isTargetWired(cwd, target, srcPath, strategy) {
   const absoluteTarget = path.resolve(cwd, target.targetPath);
   if (!fs.existsSync(absoluteTarget)) return false;
+
+  if (target.kind === 'skill-dir') {
+    const adapterPath = path.join(absoluteTarget, 'SKILL.md');
+    if (!fs.existsSync(adapterPath)) return false;
+    const content = fs.readFileSync(adapterPath, 'utf8');
+    const expected = renderSkillAdapter(target.entry || {}, path.basename(target.targetPath), target.parsed);
+    return content === expected;
+  }
 
   if (target.kind === 'cursor-rule' || target.kind === 'windsurf-workflow') {
     const content = fs.readFileSync(absoluteTarget, 'utf8');
@@ -243,6 +267,14 @@ function wireSkill(skillName, toolEntry, cwd, strategy, skipAutoRepair = false) 
 
     if (target.kind === 'windsurf-workflow') {
       fs.writeFileSync(absoluteTarget, renderWindsurfWorkflow(skillName, target.parsed), 'utf8');
+      changed = true;
+      continue;
+    }
+
+    if (target.kind === 'skill-dir') {
+      fs.mkdirSync(absoluteTarget, { recursive: true });
+      const adapterContent = renderSkillAdapter(target.entry || {}, skillName, target.parsed);
+      fs.writeFileSync(path.join(absoluteTarget, 'SKILL.md'), adapterContent, 'utf8');
       changed = true;
       continue;
     }
@@ -325,4 +357,5 @@ module.exports = {
   appendInstruction,
   updateGitignore,
   GENERATED_MARKER,
+  renderSkillAdapter,
 };

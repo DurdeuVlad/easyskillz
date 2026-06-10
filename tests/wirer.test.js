@@ -36,6 +36,18 @@ test('probeSymlinks returns a boolean', () => {
   assert.equal(typeof result, 'boolean');
 });
 
+test('renderSkillAdapter returns correct adapter content (T1)', () => {
+  const result = wirer.renderSkillAdapter(
+    { skillsDir: '.claude/skills' },
+    'review-pr',
+    { frontmatter: { name: 'review-pr', description: 'Runs a PR review.' } }
+  );
+  assert.ok(result.includes('name: review-pr'));
+  assert.ok(result.includes('description: Runs a PR review.'));
+  assert.ok(result.includes('<!-- easyskillz-generated -->'));
+  assert.ok(result.includes('.easyskillz/skills/review-pr/SKILL.md'));
+});
+
 // ── isWired ───────────────────────────────────────────────────────────────────
 
 test('isWired returns false when target does not exist', () => {
@@ -94,6 +106,44 @@ test('wireSkill returns "already" when stub already wired', () => {
   }
 });
 
+test('wireSkill skill-dir creates real dir + adapter SKILL.md (not symlink) (T2)', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'adapter-skill');
+    const entry = { id: 'claude', skillsDir: '.claude/skills' };
+    const result = wirer.wireSkill('adapter-skill', entry, cwd, 'symlink');
+    
+    assert.equal(result, 'wired');
+    const targetDir = path.join(cwd, '.claude', 'skills', 'adapter-skill');
+    assert.ok(fs.existsSync(targetDir));
+    assert.ok(!fs.lstatSync(targetDir).isSymbolicLink(), 'Target should not be a directory symlink');
+    
+    const adapterFile = path.join(targetDir, 'SKILL.md');
+    assert.ok(fs.existsSync(adapterFile));
+    assert.ok(!fs.lstatSync(adapterFile).isSymbolicLink(), 'Target file should not be a symlink');
+    
+    const content = fs.readFileSync(adapterFile, 'utf8');
+    assert.ok(content.includes('<!-- easyskillz-generated -->'));
+    assert.ok(content.includes('.easyskillz/skills/adapter-skill/SKILL.md'));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('wireSkill skill-dir is idempotent (T3)', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'adapter-skill');
+    const entry = { id: 'claude', skillsDir: '.claude/skills' };
+    wirer.wireSkill('adapter-skill', entry, cwd, 'symlink');
+    const result = wirer.wireSkill('adapter-skill', entry, cwd, 'symlink');
+    
+    assert.equal(result, 'already');
+  } finally {
+    cleanup(cwd);
+  }
+});
+
 // ── wireSkill (symlink strategy) ──────────────────────────────────────────────
 
 test('wireSkill with symlink strategy wires or stubs without throwing', () => {
@@ -146,6 +196,71 @@ test('wireSkill writes Cursor rules instead of skill directories', () => {
     wirer.wireSkill('cursor-skill', entry, cwd, 'stub');
     assert.ok(fs.existsSync(path.join(cwd, '.cursor', 'rules', 'cursor-skill.mdc')));
     assert.ok(!fs.existsSync(path.join(cwd, '.cursor', 'skills', 'cursor-skill')));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('wireSkill writes Devin skills to .devin/skills', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'devin-skill');
+    const entry = require('../src/registry').devin;
+    assert.ok(entry);
+    wirer.wireSkill('devin-skill', entry, cwd, 'stub');
+    assert.ok(fs.existsSync(path.join(cwd, '.devin', 'skills', 'devin-skill', 'SKILL.md')));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('Antigravity dual target: wires to BOTH .gemini/skills/ AND .agents/skills/', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'antigravity-skill');
+    const entry = require('../src/registry').gemini;
+    
+    assert.equal(entry.name, 'Antigravity');
+    const result = wirer.wireSkill('antigravity-skill', entry, cwd, 'stub');
+    
+    assert.equal(result, 'wired');
+    assert.ok(fs.existsSync(path.join(cwd, '.gemini', 'skills', 'antigravity-skill', 'SKILL.md')));
+    assert.ok(fs.existsSync(path.join(cwd, '.agents', 'skills', 'antigravity-skill', 'SKILL.md')));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('Windsurf — regular skill: only .windsurf/skills/, NO workflow file', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'regular-skill');
+    const entry = require('../src/registry').windsurf;
+    wirer.wireSkill('regular-skill', entry, cwd, 'stub');
+    
+    assert.ok(fs.existsSync(path.join(cwd, '.windsurf', 'skills', 'regular-skill', 'SKILL.md')));
+    assert.ok(!fs.existsSync(path.join(cwd, '.windsurf', 'workflows', 'regular-skill.md')));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('Windsurf — workflow skill: both targets created', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'workflow-skill');
+    fs.writeFileSync(path.join(cwd, '.easyskillz', 'skills', 'workflow-skill', 'SKILL.md'), [
+      '---',
+      'type: workflow',
+      '---',
+      '# workflow-skill'
+    ].join('\n'), 'utf8');
+
+    const entry = require('../src/registry').windsurf;
+    wirer.wireSkill('workflow-skill', entry, cwd, 'stub');
+
+    assert.ok(fs.existsSync(path.join(cwd, '.windsurf', 'skills', 'workflow-skill', 'SKILL.md')));
+    assert.ok(fs.existsSync(path.join(cwd, '.windsurf', 'workflows', 'workflow-skill.md')));
   } finally {
     cleanup(cwd);
   }
@@ -344,6 +459,55 @@ test('updateGitignore is idempotent', () => {
     wirer.updateGitignore(cwd, entries, 'full');
     const result = wirer.updateGitignore(cwd, entries, 'full');
     assert.equal(result, 'already');
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('isTargetWired returns true when adapter matches (T9)', () => {
+  const cwd = tmpDir();
+  try {
+    const targetDir = path.join(cwd, '.claude', 'skills');
+    const targetPath = path.join(targetDir, 'review-pr');
+    fs.mkdirSync(targetPath, { recursive: true });
+    
+    const parsed = { frontmatter: { name: 'review-pr', description: 'desc' }, body: 'body' };
+    const entry = { id: 'claude', skillsDir: '.claude/skills' };
+    const content = wirer.renderSkillAdapter(entry, 'review-pr', parsed);
+    fs.writeFileSync(path.join(targetPath, 'SKILL.md'), content, 'utf8');
+    
+    const target = {
+      kind: 'skill-dir',
+      targetPath: '.claude/skills/review-pr',
+      entry,
+      parsed
+    };
+    
+    assert.ok(wirer.isTargetWired(cwd, target, '', 'stub'));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('isTargetWired returns false when adapter stale or missing (T10)', () => {
+  const cwd = tmpDir();
+  try {
+    const targetDir = path.join(cwd, '.claude', 'skills');
+    const targetPath = path.join(targetDir, 'review-pr');
+    fs.mkdirSync(targetPath, { recursive: true });
+    fs.writeFileSync(path.join(targetPath, 'SKILL.md'), 'stale content', 'utf8');
+    
+    const parsed = { frontmatter: { name: 'review-pr', description: 'desc' }, body: 'body' };
+    const entry = { id: 'claude', skillsDir: '.claude/skills' };
+    
+    const target = {
+      kind: 'skill-dir',
+      targetPath: '.claude/skills/review-pr',
+      entry,
+      parsed
+    };
+    
+    assert.equal(wirer.isTargetWired(cwd, target, '', 'stub'), false);
   } finally {
     cleanup(cwd);
   }

@@ -45,8 +45,7 @@ describe('E2E Scenarios', () => {
     const result = runEZ('tool register windsurf --confirm', repoPath);
     assert.ok(result.ok, 'Registration failed');
     assert.ok(fs.existsSync(path.join(repoPath, '.windsurf/skills')), 'Windsurf skills folder missing');
-    assert.ok(fs.existsSync(path.join(repoPath, '.windsurf/workflows')), 'Windsurf workflows folder missing');
-    assert.ok(fs.existsSync(path.join(repoPath, '.windsurf/workflows/easyskillz-reference.md')), 'Windsurf workflow missing');
+    assert.ok(!fs.existsSync(path.join(repoPath, '.windsurf/workflows/easyskillz-reference.md')), 'Windsurf workflow should not be created for regular meta-skill');
   });
 
   test('Scenario 3: Surgical Gitignore (Protect unmanaged files)', () => {
@@ -270,5 +269,14 @@ describe('E2E Scenarios', () => {
     const codes = data.issues.map((issue) => issue.code);
     assert.ok(codes.includes('stale-target'), 'Doctor should report stale targets');
     assert.ok(codes.includes('pointer-instruction'), 'Doctor should report pointer instruction files');
+  });
+
+  test('Scenario 23: Devin Detection and Sync', () => {
+    repoPath = setupRepo();
+    fs.mkdirSync(path.join(repoPath, '.devin'), { recursive: true });
+    const result = runEZ('project sync --confirm --docs=no --gitignore=full', repoPath);
+    assert.ok(result.ok, 'Sync failed: ' + result.output);
+    assert.ok(result.output.includes('Devin'), 'Devin should be detected');
+    assert.ok(fs.existsSync(path.join(repoPath, '.devin', 'skills')), 'Devin skills folder should be created');
   });
 });
