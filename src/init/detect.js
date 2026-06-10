@@ -10,6 +10,7 @@ const DETECTORS = {
   windsurf:            require('../detectors/windsurf'),
   copilot:             require('../detectors/copilot'),
   gemini:              require('../detectors/gemini'),
+  devin:               require('../detectors/devin'),
 };
 
 // Scan for installed tools, read existing config, probe symlink support.
