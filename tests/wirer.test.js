@@ -36,6 +36,18 @@ test('probeSymlinks returns a boolean', () => {
   assert.equal(typeof result, 'boolean');
 });
 
+test('renderSkillAdapter returns correct adapter content (T1)', () => {
+  const result = wirer.renderSkillAdapter(
+    { skillsDir: '.claude/skills' },
+    'review-pr',
+    { frontmatter: { name: 'review-pr', description: 'Runs a PR review.' } }
+  );
+  assert.ok(result.includes('name: review-pr'));
+  assert.ok(result.includes('description: Runs a PR review.'));
+  assert.ok(result.includes('<!-- easyskillz-generated -->'));
+  assert.ok(result.includes('.easyskillz/skills/review-pr/SKILL.md'));
+});
+
 // ── isWired ───────────────────────────────────────────────────────────────────
 
 test('isWired returns false when target does not exist', () => {
