@@ -58,9 +58,12 @@ const REGISTRY = {
   },
   gemini: {
     id: 'gemini',
-    name: 'Gemini CLI',
+    name: 'Antigravity',
     toolDir: '.gemini',
-    skillTargets: [{ kind: 'skill-dir', path: '.gemini/skills' }],
+    skillTargets: [
+      { kind: 'skill-dir', path: '.gemini/skills' },
+      { kind: 'skill-dir', path: '.agents/skills' },
+    ],
     skillsDir: '.gemini/skills',
     instructionFile: 'GEMINI.md',
     detectionMarkers: ['.gemini/settings.json', '.gemini', 'GEMINI.md'], // folder or instruction file
