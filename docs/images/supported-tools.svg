@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 110" width="100%" height="110" style="background: transparent; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <defs>
+    <style>
+      .card {
+        fill: #161b22;
+        stroke: #30363d;
+        stroke-width: 1.5;
+        rx: 10;
+        transition: all 0.3s ease;
+      }
+      .card:hover {
+        stroke: #58a6ff;
+        fill: #1c2128;
+      }
+      .title {
+        fill: #f0f6fc;
+        font-size: 13px;
+        font-weight: 600;
+        text-anchor: middle;
+      }
+      .sub {
+        fill: #8b949e;
+        font-size: 11px;
+        text-anchor: middle;
+      }
+      .icon {
+        font-size: 24px;
+        text-anchor: middle;
+      }
+    </style>
+  </defs>
+
+  <!-- Card 1: Claude Code -->
+  <g transform="translate(10, 10)">
+    <rect width="140" height="90" class="card" />
+    <text x="70" y="38" class="icon">🤖</text>
+    <text x="70" y="62" class="title">Claude Code</text>
+    <text x="70" y="77" class="sub">.claude/skills</text>
+  </g>
+
+  <!-- Card 2: Cursor -->
+  <g transform="translate(162, 10)">
+    <rect width="140" height="90" class="card" />
+    <text x="70" y="38" class="icon">🚀</text>
+    <text x="70" y="62" class="title">Cursor</text>
+    <text x="70" y="77" class="sub">.cursor/rules</text>
+  </g>
+
+  <!-- Card 3: Devin -->
+  <g transform="translate(314, 10)">
+    <rect width="140" height="90" class="card" />
+    <text x="70" y="38" class="icon">🧠</text>
+    <text x="70" y="62" class="title">Devin</text>
+    <text x="70" y="77" class="sub">.devin/skills</text>
+  </g>
+
+  <!-- Card 4: Gemini / Antigravity -->
+  <g transform="translate(466, 10)">
+    <rect width="140" height="90" class="card" />
+    <text x="70" y="38" class="icon">♊</text>
+    <text x="70" y="62" class="title">Antigravity</text>
+    <text x="70" y="77" class="sub">.gemini/skills</text>
+  </g>
+
+  <!-- Card 5: GitHub Copilot -->
+  <g transform="translate(618, 10)">
+    <rect width="140" height="90" class="card" />
+    <text x="70" y="38" class="icon">💻</text>
+    <text x="70" y="62" class="title">GitHub Copilot</text>
+    <text x="70" y="77" class="sub">.github/skills</text>
+  </g>
+</svg>

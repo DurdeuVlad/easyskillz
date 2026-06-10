@@ -7,16 +7,14 @@
 [![last commit](https://img.shields.io/github/last-commit/DurdeuVlad/easyskillz?style=flat)](https://github.com/DurdeuVlad/easyskillz/commits/main)
 
 **🧠 easyskillz — The missing link between AI coding assistants & local workspaces.**  
-*Share custom rules, skills, and prompts across Claude Code, Cursor, Windsurf, Devin, and Gemini instantly.*
+*Share custom rules, skills, and prompts across Claude Code, Cursor, Devin, and Gemini instantly.*
 
 ![easyskillz project sync in action](./docs/images/easyskillz-sync.svg)
 
 </div>
 
 ### 🧩 Seamless Integration with:
-| Claude Code | Cursor | Devin | Windsurf | Gemini / Antigravity | GitHub Copilot |
-| :---: | :---: | :---: | :---: | :---: | :---: |
-| 🤖 | 🚀 | 🧠 | 🌊 | ♊ | 💻 |
+![Supported Tools](./docs/images/supported-tools.svg)
 
 ---
 
@@ -28,7 +26,7 @@
 
 ## The Problem
 
-You use Claude Code. And Cursor. Maybe Windsurf. Each one has its own skills folder, its own config, its own path. You build a great `review-pr` skill — and now you maintain it in three places.
+You use Claude Code. And Cursor. Maybe Devin. Each one has its own skills folder, its own config, its own path. You build a great `review-pr` skill — and now you maintain it in three places.
 
 Your teammate clones the repo. Nothing works.
 
@@ -185,8 +183,7 @@ No merge conflicts on tool config. No PRs blocked because someone uses a differe
 
 easyskillz is designed to "just work." It handles several complex AI tool behaviors automatically:
 
-- **Native Agent Targets**: Codex uses `.agents/skills/`, Gemini uses `.gemini/skills/`, Cursor uses `.cursor/rules/*.mdc`, Claude and Copilot use native skill folders, and Windsurf uses both `.windsurf/skills/` and `.windsurf/workflows/*.md`.
-- **Windsurf Dual Output**: registering or syncing Windsurf generates a skill folder and a workflow file for every skill.
+- **Native Agent Targets**: Codex uses `.agents/skills/`, Gemini uses `.gemini/skills/`, Cursor uses `.cursor/rules/*.mdc`, Claude and Copilot use native skill folders.
 - **Skill Auto-Repair**: easyskillz ensures every `SKILL.md` has a `name` and useful `description` so agents can discover and activate it.
 - **Project Doctor**: `easyskillz project doctor` reports stale `.codex/skills`, stale `.cursor/skills`, pointer-only instruction files, missing generated targets, and weak metadata.
 - **Surgical Gitignore**: When using the `smart` strategy (recommended), easyskillz surgically ignores only the files it manages (like symlinks and settings). Your custom tool files (hooks, scripts, logs) stay tracked by git.
@@ -202,7 +199,6 @@ easyskillz is designed to "just work." It handles several complex AI tool behavi
 | Claude Code | `.claude/skills/` | `CLAUDE.md` |
 | Codex | `.agents/skills/` | `AGENTS.md` |
 | Cursor | `.cursor/rules/*.mdc` | `AGENTS.md` |
-| Windsurf | `.windsurf/skills/` + `.windsurf/workflows/*.md` *(workflow skills only)* | `AGENTS.md` |
 | GitHub Copilot | `.github/skills/` | `.github/copilot-instructions.md` |
 | Antigravity | `.gemini/skills/` + `.agents/skills/` | `GEMINI.md` |
 | Devin | `.devin/skills/` | `AGENTS.md` |
@@ -221,8 +217,6 @@ SYMLINKS UNAVAILABLE ████████████████  →  copi
 **Symlink** - a `.claude/skills/review-pr` directory that IS `.easyskillz/skills/review-pr`. Edit once, all tools see it instantly.
 
 **Copy fallback** - a real generated skill directory or rule file. No pointer stubs.
-
-**Workflow (Windsurf)** - a flat `.windsurf/workflows/review-pr.md` file generated alongside the skill directory for every Windsurf skill.
 
 No silent failures. No copies getting out of sync.
 
