@@ -121,3 +121,19 @@ test('centralize handles nested directories', () => {
     cleanup(cwd);
   }
 });
+
+test('managedBlock returns correct tool-specific blocks', () => {
+  const { managedBlock } = require('../src/docs/syncFolder');
+  
+  // claude
+  const claudeBlock = managedBlock({ skillsDir: '.claude/skills' });
+  assert.ok(claudeBlock.includes('.claude/skills/'));
+  
+  // gemini/antigravity
+  const geminiBlock = managedBlock({ skillsDir: '.gemini/skills' });
+  assert.ok(geminiBlock.includes('.gemini/skills/'));
+  
+  // fallback/null
+  const codexBlock = managedBlock(null);
+  assert.ok(codexBlock.includes('.agents/skills/'));
+});
