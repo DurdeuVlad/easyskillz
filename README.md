@@ -111,6 +111,7 @@ $ easyskillz project sync
 Scanning for AI tools...
   ✓ Claude Code      (.claude/skills)
   ✓ Cursor           (.cursor/rules)
+  ✗ Codex            (not found)
 
 Reading config (.easyskillz/easyskillz.json)...
   Registered: claude, cursor
@@ -152,7 +153,7 @@ easyskillz is designed to minimize git surface area and eliminate developer fric
 |------|-----------|-----|
 | `.easyskillz/skills/` | ✓ yes | shared source of truth for all skills |
 | `.easyskillz/easyskillz.json` | ✓ yes | shared tool list so teammates wire the same tools |
-| `.claude/skills/`, `.cursor/rules/`, etc. | ✗ no | generated tool output, regenerated on sync |
+| `.claude/skills/`, `.cursor/rules/`, `.agents/skills/`, etc. | ✗ no | generated tool output, regenerated on sync |
 | `CLAUDE.md`, `AGENTS.md`, `.cursor/rules`, etc. | ✗ no | personal tool config, differs per developer |
 
 Each developer uses whichever AI tools they prefer. Their local config, symlinks, and instruction files never touch git. Only the skills themselves (the shared knowledge) are committed.
@@ -182,9 +183,9 @@ No merge conflicts on tool config. No PRs blocked because someone uses a differe
 
 easyskillz is designed to "just work." It handles several complex AI tool behaviors automatically:
 
-- **Native Agent Targets**: Gemini uses `.gemini/skills/`, Cursor uses `.cursor/rules/*.mdc`, Claude and Copilot use native skill folders.
+- **Native Agent Targets**: Codex uses `.agents/skills/`, Gemini uses `.gemini/skills/`, Cursor uses `.cursor/rules/*.mdc`, Claude and Copilot use native skill folders.
 - **Skill Auto-Repair**: easyskillz ensures every `SKILL.md` has a `name` and useful `description` so agents can discover and activate it.
-- **Project Doctor**: `easyskillz project doctor` reports stale `.cursor/skills`, pointer-only instruction files, missing generated targets, and weak metadata.
+- **Project Doctor**: `easyskillz project doctor` reports stale `.codex/skills`, stale `.cursor/skills`, pointer-only instruction files, missing generated targets, and weak metadata.
 - **Surgical Gitignore**: When using the `smart` strategy (recommended), easyskillz surgically ignores only the files it manages (like symlinks and settings). Your custom tool files (hooks, scripts, logs) stay tracked by git.
 - **Robust Detection**: Tools are detected via multiple markers: whether it's a config file, an instruction file, or just the root folder, easyskillz will find it.
 - **Normalization**: Tool IDs are case-insensitive. `easyskillz tool register CurSor` works exactly like `cursor`.
@@ -193,9 +194,8 @@ easyskillz is designed to "just work." It handles several complex AI tool behavi
 
 ## Supported Tools
 
-| Tool | Generated Target | Instruction File |
-|------|-----------------|-----------------|
 | Claude Code | `.claude/skills/` | `CLAUDE.md` |
+| Codex | `.agents/skills/` | `AGENTS.md` |
 | Cursor | `.cursor/rules/*.mdc` | `AGENTS.md` |
 | GitHub Copilot | `.github/skills/` | `.github/copilot-instructions.md` |
 | Antigravity | `.gemini/skills/` + `.agents/skills/` | `GEMINI.md` |
