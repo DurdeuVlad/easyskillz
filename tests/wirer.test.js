@@ -106,6 +106,44 @@ test('wireSkill returns "already" when stub already wired', () => {
   }
 });
 
+test('wireSkill skill-dir creates real dir + adapter SKILL.md (not symlink) (T2)', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'adapter-skill');
+    const entry = { id: 'claude', skillsDir: '.claude/skills' };
+    const result = wirer.wireSkill('adapter-skill', entry, cwd, 'symlink');
+    
+    assert.equal(result, 'wired');
+    const targetDir = path.join(cwd, '.claude', 'skills', 'adapter-skill');
+    assert.ok(fs.existsSync(targetDir));
+    assert.ok(!fs.lstatSync(targetDir).isSymbolicLink(), 'Target should not be a directory symlink');
+    
+    const adapterFile = path.join(targetDir, 'SKILL.md');
+    assert.ok(fs.existsSync(adapterFile));
+    assert.ok(!fs.lstatSync(adapterFile).isSymbolicLink(), 'Target file should not be a symlink');
+    
+    const content = fs.readFileSync(adapterFile, 'utf8');
+    assert.ok(content.includes('<!-- easyskillz-generated -->'));
+    assert.ok(content.includes('.easyskillz/skills/adapter-skill/SKILL.md'));
+  } finally {
+    cleanup(cwd);
+  }
+});
+
+test('wireSkill skill-dir is idempotent (T3)', () => {
+  const cwd = tmpDir();
+  try {
+    makeSkill(cwd, 'adapter-skill');
+    const entry = { id: 'claude', skillsDir: '.claude/skills' };
+    wirer.wireSkill('adapter-skill', entry, cwd, 'symlink');
+    const result = wirer.wireSkill('adapter-skill', entry, cwd, 'symlink');
+    
+    assert.equal(result, 'already');
+  } finally {
+    cleanup(cwd);
+  }
+});
+
 // ── wireSkill (symlink strategy) ──────────────────────────────────────────────
 
 test('wireSkill with symlink strategy wires or stubs without throwing', () => {
