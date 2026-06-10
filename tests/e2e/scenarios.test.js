@@ -270,4 +270,13 @@ describe('E2E Scenarios', () => {
     assert.ok(codes.includes('stale-target'), 'Doctor should report stale targets');
     assert.ok(codes.includes('pointer-instruction'), 'Doctor should report pointer instruction files');
   });
+
+  test('Scenario 23: Devin Detection and Sync', () => {
+    repoPath = setupRepo();
+    fs.mkdirSync(path.join(repoPath, '.devin'), { recursive: true });
+    const result = runEZ('project sync --confirm --docs=no --gitignore=full', repoPath);
+    assert.ok(result.ok, 'Sync failed: ' + result.output);
+    assert.ok(result.output.includes('Devin'), 'Devin should be detected');
+    assert.ok(fs.existsSync(path.join(repoPath, '.devin', 'skills')), 'Devin skills folder should be created');
+  });
 });
