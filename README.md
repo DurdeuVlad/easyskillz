@@ -12,6 +12,8 @@
 
 </div>
 
+📖 **[Developer Wiki](docs/wiki/Home.md)**: Guidelines on contributing, understanding the codebase, and creating issues.
+
 > **For AI Assistants**: Read [INSTALL-SKILL.md](INSTALL-SKILL.md) for installation instructions.
 
 ---
