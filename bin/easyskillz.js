@@ -117,6 +117,16 @@ async function main() {
       case 'docs':
         await docs({ action, args, flags, cwd, isTTY });
         break;
+      // Shorthand aliases for convenience
+      case 'sync':
+        await project({ action: 'sync', args, flags, cwd, isTTY });
+        break;
+      case 'doctor':
+        await project({ action: 'doctor', args, flags, cwd, isTTY });
+        break;
+      case 'add':
+        await skill({ action: 'add', args: [action, ...args].filter(Boolean), flags, cwd, isTTY });
+        break;
       default:
         process.stderr.write(`Error: unknown domain "${domain}"\n\n${USAGE}\n`);
         process.exit(1);
