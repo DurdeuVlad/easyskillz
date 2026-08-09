@@ -25,4 +25,15 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: npm
       - run: npm ci
+      # node-pty 1.1.0's macOS prebuild loses this mode bit; fixed upstream in 1.2 betas.
+      - name: Repair node-pty macOS helper permissions
+        if: runner.os == 'macOS'
+        run: |
+          helper_found=false
+          while IFS= read -r helper; do
+            chmod +x "$helper"
+            test -x "$helper"
+            helper_found=true
+          done < <(find node_modules/node-pty -type f -name spawn-helper)
+          test "$helper_found" = true
       - run: npm run ci
