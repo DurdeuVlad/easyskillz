@@ -3,23 +3,12 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# QA testing directory
+# Local QA/package artifacts
 .qa-temp/
 *.tgz
 
-# easyskillz-start
-# strategy: full
-.agents/
-.claude/
-.codex/config.json
-.codex/skills/
-.cursor/config.json
-.cursor/rules/
-.cursor/skills/
-.gemini/settings.json
-.gemini/skills/
-.windsurf/
-**/CLAUDE.md
-**/AGENTS.md
-**/GEMINI.md
-# easyskillz-end
+# Machine-local Easyskillz state and recoverable writes
+/.easyskillz/state.json
+/.easyskillz/.backups/
+*.easyskillz-stage-*
+*.easyskillz-old-*

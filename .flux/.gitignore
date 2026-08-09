@@ -1,0 +1,7 @@
+# Flux workflow reports are local project state.
+**/audit-report.md
+**/verify-report.md
+**/build-notes.md
+**/qa-log.md
+**/*
+!.gitignore

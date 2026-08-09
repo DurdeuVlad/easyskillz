@@ -1,97 +1,51 @@
-# Installing easyskillz — For AI Assistants
+# Install and use Easyskillz 0.5.0
 
-This guide is for AI coding assistants installing easyskillz in a user's repository.
-
-## Installation Commands
-
-Run these commands in order:
+Requires Node.js 22+.
 
 ```bash
-npm install -g easyskillz
+npm install --global easyskillz@0.5.0
+easyskillz --version
 ```
+
+Easyskillz exposes a CLI-only public API. Use canonical domain commands in scripts and agent instructions.
+
+## Existing project
 
 ```bash
-easyskillz sync
+easyskillz project doctor
+easyskillz skill validate
+easyskillz project migrate --dry-run
+easyskillz project sync --dry-run
 ```
 
-Done. Installation complete.
+Review each plan. Apply a legacy migration with `project migrate --write`; apply ordinary project sync non-interactively with the explicit apply option shown by its help.
 
-## PowerShell Terminal Rules (Windsurf on Windows)
+## Add a skill
 
-**Use backslashes for paths**:
-```powershell
-cd .easyskillz\skills
-```
-
-**Use PowerShell cmdlets, not Unix commands**:
-```powershell
-Get-ChildItem .easyskillz\skills
-Get-Content file.json
-```
-
-**Chain commands with semicolons**:
-```powershell
-npm install -g easyskillz; easyskillz sync
-```
-
-**Never use**: `&&`, `ls`, `cat`, `grep` - these don't work in PowerShell.
-
-## Autonomous Operation (No User Interaction)
-
-When running commands autonomously, use **command piping** to provide answers:
-
-**Accept docs management with unified strategy**:
 ```bash
-echo "Y\n1" | easyskillz sync
+easyskillz skill add review-pr --dry-run
+easyskillz skill add review-pr --confirm
 ```
 
-**Accept docs management with tool-specific strategy**:
+Edit `.easyskillz/skills/review-pr/`. Keep `SKILL.md`, scripts, references, and assets together; native hosts receive the complete directory.
+
+Codex, Copilot, Gemini CLI, Antigravity, Cursor, and Devin consume the shared `.agents/skills` output. Claude Code consumes `.claude/skills`. Configuring several shared consumers still creates one physical artifact.
+
+## Adopt instructions explicitly
+
 ```bash
-echo "Y\n2" | easyskillz sync
+easyskillz docs adopt docs/AGENTS.source.md --target AGENTS.md --dry-run
+easyskillz docs adopt docs/AGENTS.source.md --target AGENTS.md --write
+easyskillz docs sync --dry-run
+easyskillz docs sync --write
 ```
 
-**Decline docs management**:
-```bash
-echo "n" | easyskillz sync
-```
+`project sync` never claims instruction ownership. Adoption refuses unmarked user content and competing owners.
 
-**PowerShell syntax** (Windows):
-```powershell
-"Y`n1" | easyskillz sync
-```
+## Automation
 
-**Get JSON output** (machine-readable):
-```bash
-easyskillz sync --json
-easyskillz docs list --json
-```
+Use `--json` for one success or error object. Use `--dry-run` for every mutation before applying. Usage failures exit 2; operational failures exit 1.
 
-## Other Commands
+The aliases `sync`, `doctor`, and `add` remain deprecated through 0.5.x and are removed no earlier than 0.6.0. Do not put them in new automation.
 
-**Add a new skill**:
-```bash
-easyskillz add <skill-name>
-```
-
-**Register a new tool**:
-```bash
-easyskillz register <tool-name>
-```
-
-**Force re-scan instruction files**:
-```bash
-easyskillz docs sync
-```
-
-**Show centralized instruction files**:
-```bash
-easyskillz docs list
-```
-
-## Critical Rules
-
-- Never manually copy skills between directories
-- Never edit `.easyskillz/easyskillz.json` manually
-- `sync` is idempotent - safe to run multiple times
-- Use piping for autonomous operation - never wait for user input
-- CLI auto-skips prompts when not in a TTY (but piping is more reliable)
+Support is `conformant` unless dated activation evidence names a tested host version; installation alone does not make a surface verified.

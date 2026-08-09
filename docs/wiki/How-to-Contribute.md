@@ -1,120 +1,34 @@
-# How to Contribute
+# How to contribute — 0.5.0
 
-We welcome contributions of all kinds—whether it's fixing bugs, enhancing documentation, or adding support for new AI coding tools! 
-
-To keep the codebase maintainable, fast, and easy for AI agents to interact with, we strictly enforce several coding and design principles.
-
----
-
-## 🛠️ Development Setup
-
-Getting started is simple. Since `easyskillz` has **zero runtime dependencies**, you do not need to run `npm install` unless you want to run the test suite (which uses Node's native test runner but has devDependencies for formatting/linting).
+Use Node.js 22+ and install from the lockfile:
 
 ```bash
-# Clone the repository
-git clone https://github.com/DurdeuVlad/easyskillz.git
-cd easyskillz
-
-# Test the local executable
-node bin/easyskillz.js --help
-```
-
----
-
-## 📐 Coding Conventions & Guidelines
-
-All code contributions must adhere to the following rules:
-
-### 1. Zero Runtime Dependencies
-*   We **do not allow** any third-party runtime dependencies (e.g., `chalk`, `commander`, `inquirer`, `lodash`, etc.).
-*   Only use Node.js built-in modules (`fs`, `path`, `os`, `readline`, `child_process`).
-*   This keeps the tool instantly executable, secure, and lightweight for AI agents to run.
-
-### 2. CommonJS Modules
-*   Use plain CommonJS (`require` and `module.exports`).
-*   Do not use ES Modules (`import`/`export`) or compile steps (Babel, TypeScript). The codebase runs directly in Node.js.
-
-### 3. Strict Idempotency
-*   Every write, update, or directory creation must be idempotent.
-*   **Always check before doing**: verify if the directory or symlink already exists before attempting to create it.
-*   Running `easyskillz project sync` repeatedly on the same project must produce the exact same filesystem state without throwing errors or creating duplicate entries.
-
-### 4. Glass Box Principle
-*   Do not perform silent filesystem operations.
-*   Always print to stdout/stderr what the CLI is doing (e.g., `✓ Wired skill-name -> Claude Code`).
-*   If running in `--json` mode, ensure the command prints valid, parseable JSON and exits with `0` on success or `1` on error.
-
----
-
-## 🧪 Testing Workflow
-
-Before opening a pull request, you must verify that the test suite passes completely.
-
-### Running Tests
-Execute the test runner:
-```bash
+npm ci
 npm test
 ```
-This runs:
-*   **Unit Tests** (`tests/*.test.js`): Testing individual components like config readers, gitignore writers, and path utilities.
-*   **Detector Tests** (`tests/detectors/*.test.js`): Verifying each tool detector correctly identifies the tool's environment.
-*   **E2E Scenarios** (`tests/e2e/scenarios.test.js`): Simulating real developer workspaces, switching tools, and verifying symlinks/adapters are wired properly.
 
----
+## Change loop
 
-## 🚀 Step-by-Step: Adding a New AI Tool
+1. State the observable CLI or artifact contract.
+2. Write a real failing test and run it red.
+3. Implement inside the declared file boundary.
+4. Run the focused test green, then its test layer and the full suite.
+5. Update executable examples and compatibility evidence.
 
-Adding support for a new AI tool requires three simple steps:
+Tests should prefer the public binary. Assert stdout, stderr, exit code, JSON shape, full-tree byte stability, and recovery—not private call counts.
 
-### Step 1: Update the Registry
-Edit [`src/registry.js`](file:///e:/Github2/easyskillz/src/registry.js) to define the tool's properties:
-```javascript
-mytool: {
-  id: 'mytool',
-  name: 'My Tool CLI',
-  skillsDir: '.mytool/skills',               // Target directory for skills
-  instructionFile: '.mytool/instructions.md',// File where instruction stubs are written
-  detectionMarkers: ['.mytool'],             // Files/folders unique to this tool
-}
-```
-> [!IMPORTANT]
-> The `detectionMarkers` must be unique to this tool. Never use shared marker files (like `AGENTS.md`) as detection markers.
+## Surface changes
 
-### Step 2: Create a Detector
-Create a new detector file at `src/detectors/mytool.js`:
-```javascript
-'use strict';
+Document the host’s native path, instruction contract, discovery behavior, evidence date, and limitations. Emit the complete native directory without rewriting its contents. Keep the tier `conformant` until dated activation evidence names the host version.
 
-const fs = require('fs');
-const path = require('path');
-const registry = require('../registry');
+## Safety review
 
-module.exports = function detect(cwd) {
-  const entry = registry.mytool;
-  const found =
-    fs.existsSync(path.join(cwd, entry.skillsDir)) ||
-    entry.detectionMarkers.some((marker) => fs.existsSync(path.join(cwd, marker)));
-  return { id: entry.id, found, entry };
-};
-```
+- Does validation finish before planning?
+- Does planning finish before any write?
+- Is the destination contained after resolving parent links?
+- Is every replacement staged and recoverable?
+- Is state written last?
+- Is deletion backed by ownership, zero consumers, and matching identity?
+- Are docs handled only through explicit adoption?
 
-### Step 3: Register the Detector
-Require and register your detector in [`src/init/detect.js`](file:///e:/Github2/easyskillz/src/init/detect.js):
-```javascript
-const DETECTORS = {
-  // ...existing detectors
-  mytool: require('../detectors/mytool'),
-};
-```
-
----
-
-## 📋 Pull Request Checklist
-
-Before opening a PR, ensure you have completed the following:
-
-- [ ] All unit, detector, and E2E tests pass cleanly (`npm test`).
-- [ ] No new runtime dependencies have been introduced.
-- [ ] The CLI outputs are helpful, concise, and support `--json` output.
-- [ ] Any new CLI features or tool additions are fully documented in the `README.md`.
-- [ ] All code modifications maintain backward-compatibility and are fully idempotent.
+The CLI-only public API and three 0.5.x aliases are defined in the command schema. Do not add an undocumented shortcut.

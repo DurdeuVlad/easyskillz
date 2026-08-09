@@ -1,20 +1,20 @@
 <!-- easyskillz-managed -->
-## easyskillz — Skill Management
+## Easyskillz 0.5.0
 
-This project uses [easyskillz](https://github.com/DurdeuVlad/easyskillz) to manage AI agent skills.
+Canonical skills live in `.easyskillz/skills/<name>/`. Use the CLI; do not edit generated agent targets.
 
-**Creating skills:**
 ```bash
-easyskillz add <skill-name>  # Creates skill and wires to all tools
+easyskillz skill validate
+easyskillz project sync --dry-run
+easyskillz project doctor
 ```
 
-**After cloning:**
+Mutation is preview-first. Instruction files are managed only through an explicitly adopted source-to-target mapping:
+
 ```bash
-easyskillz sync  # Regenerates symlinks and wires skills
+easyskillz docs adopt docs/AGENTS.source.md --target AGENTS.md --dry-run
+easyskillz docs sync --dry-run
 ```
 
-Skills live in `.easyskillz/skills/` (source of truth, committed to git).
-Tool directories like `.claude/skills/` are symlinks (gitignored, regenerated on sync).
-
-See the `easyskillz-reference` skill for complete documentation.
+Apply only after reviewing the plan. Easyskillz never treats missing state as deletion authority.
 <!-- /easyskillz-managed -->

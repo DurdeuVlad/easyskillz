@@ -6,8 +6,6 @@ const registry = require('../registry');
 
 module.exports = function detect(cwd) {
   const entry = registry.claude;
-  const found =
-    fs.existsSync(path.join(cwd, entry.skillsDir)) ||
-    entry.detectionMarkers.some((marker) => fs.existsSync(path.join(cwd, marker)));
-  return { id: entry.id, found, entry };
+  const evidence = entry.detectionMarkers.filter((marker) => fs.existsSync(path.join(cwd, marker)));
+  return { found: evidence.length > 0, evidence };
 };

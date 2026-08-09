@@ -1,6 +1,6 @@
 {
   "name": "easyskillz",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Single source of truth for AI agent skills across multiple tools",
   "main": "index.js",
   "bin": {
@@ -12,13 +12,18 @@
     "index.js"
   ],
   "scripts": {
-    "test": "node --test tests/*.test.js tests/detectors/*.test.js tests/e2e/*.test.js",
-    "release:patch": "npm test && npm version patch && npm publish --access public",
-    "release:minor": "npm test && npm version minor && npm publish --access public",
-    "release:major": "npm test && npm version major && npm publish --access public"
+    "test": "npm run test:unit && npm run test:contract && npm run test:integration && npm run test:e2e",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:contract": "node --test tests/contract/*.test.js",
+    "test:integration": "node --test tests/integration/*.test.js",
+    "test:e2e": "node --test tests/e2e/*.test.js",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-lines=90 --test-coverage-functions=90 --test-coverage-branches=85 tests/unit/*.test.js tests/contract/*.test.js tests/integration/*.test.js tests/e2e/*.test.js",
+    "test:acceptance": "node scripts/check-acceptance-coverage.js",
+    "test:package": "node scripts/test-package.js",
+    "ci": "npm run test:acceptance && npm test && npm run test:coverage && npm run test:package"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "keywords": [
     "ai",
@@ -48,5 +53,11 @@
   "bugs": {
     "url": "https://github.com/DurdeuVlad/easyskillz/issues"
   },
-  "homepage": "https://github.com/DurdeuVlad/easyskillz#readme"
+  "homepage": "https://github.com/DurdeuVlad/easyskillz#readme",
+  "dependencies": {
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "node-pty": "^1.1.0"
+  }
 }

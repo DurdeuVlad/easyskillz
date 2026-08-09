@@ -1,74 +1,50 @@
-# Development Guide
+# Development
 
-Everything you need to run and contribute to easyskillz locally.
-
-## Requirements
-
-- Node.js >= 18
+Easyskillz 0.5.0 requires Node.js 22+ and remains CommonJS. The only runtime dependency is `yaml` 2.x; `node-pty` is development-only for PTY/ConPTY contract coverage.
 
 ## Setup
 
 ```bash
-git clone https://github.com/DurdeuVlad/easyskillz
-cd easyskillz
-```
-
-No `npm install` needed — zero runtime dependencies.
-
-## Run Locally
-
-```bash
-node bin/easyskillz.js --help
-node bin/easyskillz.js sync
-node bin/easyskillz.js add <name>
-node bin/easyskillz.js register <tool>
-```
-
-## Test
-
-```bash
+npm ci
 npm test
 ```
 
-Manual smoke test against a scratch project:
+The executable is the CLI-only public API. Internal modules are implementation details and may change without a compatibility shim.
+
+## Architecture
+
+The runtime follows one direction:
+
+```text
+CLI schema → parse/validate → dispatch → readers → plan → preview/confirm → apply → state
+```
+
+- `src/cli/` owns grammar, aliases, streams, envelopes, and exits.
+- Config and skill-document readers return explicit diagnostics without mutation.
+- The planner deduplicates shared physical outputs and rejects collisions before writes.
+- Filesystem helpers enforce containment, hashing, sibling staging, atomic replacement, and recovery.
+- Native outputs link or copy complete skill directories. Six retained surfaces share `.agents/skills`; Claude Code uses `.claude/skills`.
+- `.easyskillz/state.json` records local ownership and commits last.
+- Doctor can reach readers and inspectors, never the applier.
+
+## Test-first work
+
+Write an observable failing test, run it red, implement the smallest change, run it green, then run the relevant layer and full suite. Tests use Node’s built-in runner.
 
 ```bash
-mkdir /tmp/test-project && cd /tmp/test-project
-touch CLAUDE.md
-node /path/to/easyskillz/bin/easyskillz.js sync
-node /path/to/easyskillz/bin/easyskillz.js add my-skill
-node /path/to/easyskillz/bin/easyskillz.js register cursor
+node --test tests/unit/*.test.js
+node --test tests/contract/*.test.js
+node --test tests/integration/*.test.js
+node --test tests/e2e/*.test.js
 ```
 
-## Project Structure
+Contract tests spawn `bin/easyskillz.js`. Integration tests use disposable workspaces. Package tests audit, pack, install in a clean fixture, and invoke the installed executable. CI covers Windows, macOS, and Linux on Node 22 and 24.
 
-```
-bin/
-  easyskillz.js       ← CLI entry point, argv parsing
-src/
-  registry.js         ← all supported tools + their paths
-  config.js           ← read/write .easyskillz/easyskillz.json
-  wirer.js            ← symlink probe, wire, stub, gitignore logic
-  detectors/          ← one file per tool, detects if it's present
-  init/
-    detect.js         ← scan tools, read config, probe symlinks
-    plan.js           ← scan unwired skills, build action list, confirm
-    execute.js        ← apply the plan
-  commands/
-    sync.js           ← orchestrator (calls detect → plan → execute)
-    add.js            ← create skill + wire to all tools
-    register.js       ← add tool + wire all existing skills
-index.js              ← programmatic API entry point
-```
+## Non-negotiable invariants
 
-## Adding a New Tool
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the step-by-step template.
-
-## Debug Mode
-
-Set `DEBUG=1` to print full stack traces on errors:
-
-```bash
-DEBUG=1 node bin/easyskillz.js sync
-```
+- Read-only operations preserve source bytes.
+- Every mutation has a deterministic preview and `--dry-run` path.
+- Unowned, drifted, shared, or unmanifested output is preserved and diagnosed.
+- Instruction management requires an explicit adopted mapping.
+- No support surface is called verified without dated host/version activation evidence.
+- Do not publish, tag, push, or deploy as part of ordinary development verification.

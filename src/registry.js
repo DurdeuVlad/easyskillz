@@ -1,84 +1,40 @@
 'use strict';
 
-// Single source of truth for all supported tools.
-// To add a new tool: add one entry here + one file in src/detectors/.
-const REGISTRY = {
-  claude: {
-    id: 'claude',
-    name: 'Claude Code',
-    toolDir: '.claude',
-    skillTargets: [{ kind: 'skill-dir', path: '.claude/skills' }],
-    skillsDir: '.claude/skills',
-    instructionFile: 'CLAUDE.md',
-    detectionMarkers: ['.claude/settings.json', '.claude', 'CLAUDE.md'], // auto-created, folder or instruction file
-    configFiles: ['.claude/settings.local.json', '.claude/settings.json'],
-  },
-  codex: {
-    id: 'codex',
-    name: 'Codex',
-    toolDir: '.codex',
-    skillTargets: [{ kind: 'skill-dir', path: '.agents/skills' }],
-    skillsDir: '.agents/skills',
-    instructionFile: 'AGENTS.md',
-    detectionMarkers: ['.codex'],         // tool-specific dir
-    configFiles: ['.codex/config.json'],
-  },
-  cursor: {
-    id: 'cursor',
-    name: 'Cursor',
-    toolDir: '.cursor',
-    skillTargets: [{ kind: 'cursor-rule', path: '.cursor/rules' }],
-    skillsDir: '.cursor/rules',
-    instructionFile: 'AGENTS.md',
-    detectionMarkers: ['.cursor'],        // tool-specific dir
-    configFiles: ['.cursor/config.json'],
-  },
-  windsurf: {
-    id: 'windsurf',
-    name: 'Windsurf',
-    toolDir: '.windsurf',
-    skillTargets: [
-      { kind: 'skill-dir', path: '.windsurf/skills' },
-      { kind: 'windsurf-workflow', path: '.windsurf/workflows', when: 'workflow' },
-    ],
-    skillsDir: '.windsurf/skills',
-    instructionFile: 'AGENTS.md',
-    detectionMarkers: ['.windsurf', '.windsurf/workflows'], // folder or workflows root
-    configFiles: ['.windsurf/settings.json'],
-  },
-  copilot: {
-    id: 'copilot',
-    name: 'GitHub Copilot',
-    toolDir: '.github',
-    skillTargets: [{ kind: 'skill-dir', path: '.github/skills' }],
-    skillsDir: '.github/skills',
-    instructionFile: '.github/copilot-instructions.md',
-    detectionMarkers: ['.github/copilot-instructions.md', '.github/skills'], // unique files only, not root .github
-    configFiles: [],
-  },
-  gemini: {
-    id: 'gemini',
-    name: 'Antigravity',
-    toolDir: '.gemini',
-    skillTargets: [
-      { kind: 'skill-dir', path: '.gemini/skills' },
-      { kind: 'skill-dir', path: '.agents/skills' },
-    ],
-    skillsDir: '.gemini/skills',
-    instructionFile: 'GEMINI.md',
-    detectionMarkers: ['.gemini/settings.json', '.gemini', 'GEMINI.md'], // folder or instruction file
-    configFiles: ['.gemini/settings.json'],
-  },
-  devin: {
-    id: 'devin',
-    name: 'Devin',
-    toolDir: '.devin',
-    skillTargets: [{ kind: 'skill-dir', path: '.devin/skills' }],
-    skillsDir: '.devin/skills',
-    instructionFile: 'AGENTS.md',
-    detectionMarkers: ['.devin'],
-    configFiles: ['.devin/settings.json'],
-  },
+function surface(id, name, skillTargets, instructionFile, detectionMarkers) {
+  return { id, name, tier: 'conformant', skillTargets, instructionFile, detectionMarkers, configFiles: [] };
+}
+
+const registry = {
+  claude: surface('claude', 'Claude Code', [{ kind: 'native', path: '.claude/skills' }], 'CLAUDE.md', ['.claude/settings.json', '.claude']),
+  codex: surface('codex', 'Codex', [{ kind: 'native', path: '.agents/skills' }], 'AGENTS.md', ['.codex']),
+  copilot: surface('copilot', 'GitHub Copilot', [{ kind: 'native', path: '.agents/skills' }], '.github/copilot-instructions.md', ['.github/copilot-instructions.md']),
+  'gemini-cli': surface('gemini-cli', 'Gemini CLI', [{ kind: 'native', path: '.agents/skills' }], 'GEMINI.md', ['.gemini/settings.json', '.gemini']),
+  antigravity: surface('antigravity', 'Antigravity', [{ kind: 'native', path: '.agents/skills' }], 'AGENTS.md', ['.agents/skills', 'GEMINI.md']),
+  cursor: surface('cursor', 'Cursor', [{ kind: 'native', path: '.agents/skills' }], 'AGENTS.md', ['.cursor']),
+  devin: surface('devin', 'Devin', [{ kind: 'native', path: '.agents/skills' }], 'AGENTS.md', ['.devin']),
 };
 
-module.exports = REGISTRY;
+function validateSurface(value) {
+  if (!value || !value.id) throw new Error('surface id is required');
+  if (value.tier === 'verified') {
+    if (!value.activation || !/^\d{4}-\d{2}-\d{2}$/.test(value.activation.date || '') || !value.activation.version) {
+      throw new Error('verified surfaces require dated host-version activation evidence');
+    }
+  }
+  return value;
+}
+
+for (const value of Object.values(registry)) validateSurface(value);
+Object.defineProperty(registry, 'validateSurface', { value: validateSurface, enumerable: false });
+Object.defineProperty(registry, 'legacyIds', { value: Object.freeze({ gemini: 'antigravity' }), enumerable: false });
+Object.defineProperty(registry, 'legacyOutputs', {
+  value: Object.freeze({
+    cursor: Object.freeze(['.cursor/rules']),
+    gemini: Object.freeze(['.gemini/skills']),
+    windsurf: Object.freeze(['.windsurf/skills', '.windsurf/workflows']),
+    'devin-desktop': Object.freeze(['.windsurf/skills', '.windsurf/workflows']),
+  }),
+  enumerable: false,
+});
+
+module.exports = Object.freeze(registry);

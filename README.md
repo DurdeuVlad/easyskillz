@@ -1,360 +1,165 @@
-<div align="center">
+# easyskillz
 
-# 🧠 easyskillz
+Easyskillz 0.5.0 keeps reusable agent skills honest across tools. You author one complete skill directory under `.easyskillz/skills/`; Easyskillz validates it, plans target changes, and materializes the complete native directory each host discovers.
 
-[![npm version](https://img.shields.io/npm/v/easyskillz?style=flat)](https://www.npmjs.com/package/easyskillz)
-[![license](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![last commit](https://img.shields.io/github/last-commit/DurdeuVlad/easyskillz?style=flat)](https://github.com/DurdeuVlad/easyskillz/commits/main)
+Requires Node.js 22+.
 
-**🧠 easyskillz: The missing link between AI coding assistants & local workspaces.**  
-*Share custom rules, skills, and prompts across Claude Code, Cursor, Devin, and Gemini instantly.*
+## What changed in 0.5
 
-![easyskillz project sync in action](./docs/images/easyskillz-sync.svg)
+- Complete native directory delivery by link or atomic copy. Scripts, references, assets, and the real `SKILL.md` move together.
+- Strict YAML and schema-2 config validation. Read-only commands never rewrite source bytes.
+- Preview-first mutations with `--dry-run`, local ownership state, hashes, shared-consumer tracking, and safe cleanup.
+- Explicit docs ownership. `project sync` does not scan or rewrite instruction files.
+- One declared CLI grammar with stable JSON envelopes, usage exits, and help that cannot dispatch.
 
-## 🧩 Seamless Integration
-
-Edit your skills once in `.easyskillz/skills/` and they are instantly synchronized across all your editors and agents:
-
-</div>
-
-<p align="center">
-  <img src="./docs/images/supported-tools.svg" alt="Supported AI Tools" width="100%" />
-</p>
-
-
-## The Problem
-
-You use Claude Code. And Cursor. Maybe Devin. Each one has its own skills folder, its own config, its own path. You build a great `review-pr` skill, and now you maintain it in three places.
-
-Your teammate clones the repo. Nothing works.
-
----
-
-## The Solution
-
-```
-.easyskillz/skills/     ← one folder, committed to git
-    review-pr/
-        SKILL.md
-    commit-msg/
-        SKILL.md
-```
-
-Run `easyskillz sync` once. Every tool gets a symlink. Every teammate who clones runs `easyskillz sync` and everything is wired in seconds.
-
----
+The executable is the CLI-only public API. Requiring internal JavaScript modules is unsupported.
 
 ## Install
 
-**Latest stable:**
 ```bash
-npm install -g easyskillz
+npm install --global easyskillz@0.5.0
+easyskillz --version
 ```
 
-**Alpha (v2.0.0 - domain-based commands, OOP architecture):**
+## Start
+
 ```bash
-npm install -g easyskillz@alpha
+# inspect first
+easyskillz project doctor
+easyskillz skill validate
+easyskillz project sync --dry-run
+
+# apply the reviewed project plan
+easyskillz project sync --confirm
 ```
 
-> **For AI Assistants**: Read [INSTALL-SKILL.md](INSTALL-SKILL.md) for installation instructions.
+Canonical sources are committed. Generated outputs and machine-local `.easyskillz/state.json` are not.
 
----
+```text
+.easyskillz/
+  easyskillz.json       committed desired state, schema 2
+  skills/<name>/        committed canonical skill directories
+  state.json            ignored local ownership and artifact identity
+```
 
 ## Commands
 
-> **v2.0.0-alpha.3**: Commands now use domain-based structure: `easyskillz <domain> <action>`
+```text
+easyskillz skill add <name>
+easyskillz skill remove <name>
+easyskillz skill activate <name>
+easyskillz skill deactivate <name>
+easyskillz skill list
+easyskillz skill validate [name]
+easyskillz skill format <name> [--write]
+easyskillz skill repair <name> [--write]
 
-### Skill Management
-```bash
-easyskillz skill add <name>           # create a skill and wire it to all tools
-easyskillz skill list                 # show all skills (active + deactivated)
-easyskillz skill deactivate <name>    # soft delete (reversible)
-easyskillz skill activate <name>      # restore a deactivated skill
-easyskillz skill remove <name>        # permanently delete (requires --confirm for AI)
+easyskillz tool register <surface>
+easyskillz tool unregister <surface>
+easyskillz tool list
+
+easyskillz project sync
+easyskillz project doctor [--strict]
+easyskillz project export --target <path>
+easyskillz project migrate [--write]
+
+easyskillz docs adopt <source> --target <instruction-path> [--write]
+easyskillz docs sync [--write]
+easyskillz docs restore <backup-id> --write
+easyskillz docs list
 ```
 
-### Tool Management
-```bash
-easyskillz tool register <name>       # add a tool and wire all skills to it
-easyskillz tool unregister <name>     # remove a tool (requires --mode and --confirm for AI)
-easyskillz tool list                  # show registered tools
-```
+Options may appear before or after operands. `--` ends option parsing. `--json` produces one object on stdout; usage failures exit 2, operational failures exit 1.
 
-### Project Operations
-```bash
-easyskillz project sync               # detect tools, wire everything, set up .easyskillz/
-easyskillz project doctor             # report stale targets and metadata issues
-easyskillz project export --target <path>  # copy skills + config to another project
-```
+Every mutating command accepts `--dry-run`. Format, repair, migration, and docs operations preview by default and use `--write` to apply. Other mutations require one interactive confirmation or an explicit non-interactive apply flag.
 
-### Instruction Files
-```bash
-easyskillz docs sync                  # update instruction files for all tracked folders
-easyskillz docs list                  # show instruction files and their status
-```
+Export targets are existing directories inside the current workspace. Absolute paths, `..`, and parent-link escapes are rejected by the same containment policy as every other write.
 
-### AI-Friendly (One-Shot Execution)
-```bash
-# All flags in one command - no interactive prompts
-easyskillz project sync --docs=yes --docs-strategy=unified --gitignore=full
-easyskillz skill remove my-skill --confirm
-easyskillz tool unregister cursor --mode=full --confirm
-```
+## Compatibility aliases
 
----
-
-## What `project sync` Looks Like
-
-```
-$ easyskillz project sync
-
-Scanning for AI tools...
-  ✓ Claude Code      (.claude/skills)
-  ✓ Cursor           (.cursor/rules)
-  ✗ Codex            (not found)
-
-Reading config (.easyskillz/easyskillz.json)...
-  Registered: claude, cursor
-  Strategy:   symlink
-
-Testing symlink support...
-  ✓ symlinks work
-
-Scanning for unwired skills...
-  review-pr    → Claude Code: ✗ missing
-  review-pr    → Cursor:      ✗ missing
-  commit-msg   → Claude Code: ✗ missing
-
-Plan:
-  [ wire ]      .claude/skills/review-pr   →  .easyskillz/skills/review-pr
-  [ wire ]      .cursor/rules/review-pr.mdc   →  .easyskillz/skills/review-pr
-  [ wire ]      .claude/skills/commit-msg  →  .easyskillz/skills/commit-msg
-
-Proceed? [Y/n]
-
-  ✓ Wired review-pr  → Claude Code
-  ✓ Wired review-pr  → Cursor
-  ✓ Wired commit-msg → Claude Code
-
-Done. 2 tool(s) wired via symlink.
-```
-
-You see exactly what will happen before it happens. One confirmation. Done.
-
----
-
-## Built for Teams
-
-easyskillz is designed to minimize git surface area and eliminate developer friction in large teams.
-
-**What gets committed (and what doesn't):**
-
-| Path | Committed | Why |
-|------|-----------|-----|
-| `.easyskillz/skills/` | ✓ yes | shared source of truth for all skills |
-| `.easyskillz/easyskillz.json` | ✓ yes | shared tool list so teammates wire the same tools |
-| `.claude/skills/`, `.cursor/rules/`, `.agents/skills/`, etc. | ✗ no | generated tool output, regenerated on sync |
-| `CLAUDE.md`, `AGENTS.md`, `.cursor/rules`, etc. | ✗ no | personal tool config, differs per developer |
-
-Each developer uses whichever AI tools they prefer. Their local config, symlinks, and instruction files never touch git. Only the skills themselves (the shared knowledge) are committed.
+The human aliases `sync`, `doctor`, and `add <name>` are deprecated but remain available through 0.5.x. Removal is no earlier than 0.6.0. JSON and help calls do not emit alias warnings.
 
 ```bash
-# Day 1: Set it up
-easyskillz sync
-easyskillz add review-pr
-easyskillz add commit-msg
-
-git add .easyskillz/skills/
-git commit -m "add shared skills"
-git push
+easyskillz sync --help
+easyskillz doctor --help
+easyskillz add --help
 ```
+
+New documentation and automation should use canonical domain commands.
+
+## Agent surfaces
+
+Documentation conformance is not runtime verification. Every surface starts at `conformant`; promotion to `verified` requires dated activation evidence naming the host version.
+
+| Surface | Project skill target | Instruction target | Output | Tier |
+|---|---|---|---|---|
+| `codex` | `.agents/skills/<name>/` | `AGENTS.md` | complete native directory | conformant |
+| `claude` | `.claude/skills/<name>/` | `CLAUDE.md` | complete native directory | conformant |
+| `copilot` | `.agents/skills/<name>/` | `.github/copilot-instructions.md` | complete native directory | conformant |
+| `gemini-cli` | `.agents/skills/<name>/` | `GEMINI.md` | complete native directory | conformant |
+| `antigravity` | `.agents/skills/<name>/` | `AGENTS.md` / `GEMINI.md` | complete native directory | conformant |
+| `cursor` | `.agents/skills/<name>/` | `AGENTS.md` | complete native directory | conformant |
+| `devin` | `.agents/skills/<name>/` | `AGENTS.md` | complete native directory | conformant |
+
+Codex, Copilot, Gemini CLI, Antigravity, Cursor, and Devin share one physical `.agents/skills` output. Claude Code uses its native `.claude/skills` directory. Easyskillz records the full consumer set so removing one surface cannot remove an artifact still used by another.
+
+## Skill documents
+
+Portable frontmatter uses `name` and `description`; supported extension keys are preserved. Validation reports malformed YAML, unsafe constructs, type problems, name mismatches, and target-specific loss without editing the source.
 
 ```bash
-# Teammate clones: Uses Cursor, you use Claude, no conflict
-git clone <repo>
-easyskillz sync   ← detects their tools, wires all skills automatically
-
-✓ Done. 2 tool(s) wired via symlink.
+easyskillz skill validate review-pr
+easyskillz skill format review-pr       # preview diff
+easyskillz skill format review-pr --write
+easyskillz skill repair review-pr        # preview repair
 ```
 
-No merge conflicts on tool config. No PRs blocked because someone uses a different editor. The skill content is the only thing that matters, and that's exactly what gets shared.
+Applied format and repair operations keep a recoverable original.
 
-## Automated Behaviors
+## Explicit docs ownership
 
-easyskillz is designed to "just work." It handles several complex AI tool behaviors automatically:
-
-- **Native Agent Targets**: Codex uses `.agents/skills/`, Gemini uses `.gemini/skills/`, Cursor uses `.cursor/rules/*.mdc`, Claude and Copilot use native skill folders.
-- **Skill Auto-Repair**: easyskillz ensures every `SKILL.md` has a `name` and useful `description` so agents can discover and activate it.
-- **Project Doctor**: `easyskillz project doctor` reports stale `.codex/skills`, stale `.cursor/skills`, pointer-only instruction files, missing generated targets, and weak metadata.
-- **Surgical Gitignore**: When using the `smart` strategy (recommended), easyskillz surgically ignores only the files it manages (like symlinks and settings). Your custom tool files (hooks, scripts, logs) stay tracked by git.
-- **Robust Detection**: Tools are detected via multiple markers: whether it's a config file, an instruction file, or just the root folder, easyskillz will find it.
-- **Normalization**: Tool IDs are case-insensitive. `easyskillz tool register CurSor` works exactly like `cursor`.
-
----
-
-## Supported Tools
-
-| Claude Code | `.claude/skills/` | `CLAUDE.md` |
-| Codex | `.agents/skills/` | `AGENTS.md` |
-| Cursor | `.cursor/rules/*.mdc` | `AGENTS.md` |
-| GitHub Copilot | `.github/skills/` | `.github/copilot-instructions.md` |
-| Antigravity | `.gemini/skills/` + `.agents/skills/` | `GEMINI.md` |
-| Devin | `.devin/skills/` | `AGENTS.md` |
-| Windsurf | `.windsurf/skills/` + `.windsurf/workflows` | `AGENTS.md` |
-
----
-
-## How Wiring Works
-
-easyskillz probes symlink support on your machine automatically. 
-
-```
-SYMLINKS AVAILABLE   ████████████████  →  uses symlinks (always in sync)
-SYMLINKS UNAVAILABLE ████████████████  →  copies real generated files
-```
-
-**Symlink**: a `.claude/skills/review-pr` directory that IS `.easyskillz/skills/review-pr`. Edit once, all tools see it instantly.
-
-**Copy fallback**: a real generated skill directory or rule file. No pointer stubs.
-
-No silent failures. No copies getting out of sync.
-
----
-
-## Gitignore Strategies
-
-Manage your project's `.gitignore` block automatically:
-
-- **smart** (recommended): Surgical ignore. Only ignores managed skills/configs, keeps your custom files tracked.
-- **full**: Blanket ignore root tool folders. Cleanest repo, but may hide custom files in tool dirs.
-- **minimal**: Only ignore files that might cause merge conflicts.
-- **none**: Manual management.
-
-easyskillz uses a managed block (`# easyskillz-start` ... `# easyskillz-end`) so it can update its rules as you add more tools.
-
----
-
-## Config
-
-`.easyskillz/easyskillz.json` is committed to git. It's how teammates know what to wire.
-
-```json
-{
-  "tools": ["claude", "cursor"],
-  "linkStrategy": "symlink",
-  "manageDocs": true,
-  "docsStrategy": "unified"
-}
-```
-
-**Instruction file management** (optional):
-- `manageDocs: true`: easyskillz centralizes instruction files in `.easyskillz/docs/` and leaves real content at native instruction paths
-- `docsStrategy: "unified"`: one `INSTRUCTION.md` per folder for all tools
-- `docsStrategy: "tool-specific"`: separate file per tool per folder
-
-Symlinks themselves are gitignored because they're machine-local. Centralized docs in `.easyskillz/docs/` are committed.
-
----
-
-## Agent-Friendly
-
-All commands support `--json` for machine-readable output:
+Instruction files remain user-owned until you adopt an exact mapping:
 
 ```bash
-$ easyskillz sync --json
-{"ok":true,"tools":["claude","cursor"],"strategy":"symlink","actions":["wire","wire","instruct"]}
+easyskillz docs adopt docs/AGENTS.source.md --target AGENTS.md
+easyskillz docs adopt docs/AGENTS.source.md --target AGENTS.md --write
+easyskillz docs sync
+easyskillz docs sync --write
 ```
 
-- No interactive prompts when stdin is not a TTY
-- Exit code `0` on success, non-zero on failure
-- Errors to stderr, output to stdout
-- Safe to re-run: fully idempotent
+Adoption refuses targets with unmarked user content or another owner. Originals are backed up, and `docs restore <backup-id> --write` restores a recorded version.
 
----
+## Migration
 
-## Self-Propagating
+Legacy unversioned config is read as schema 1 without mutation. Migration is explicit:
 
-`sync` creates a `_easyskillz` meta-skill that teaches AI agents how to use easyskillz.
+```bash
+easyskillz project migrate
+easyskillz project migrate --write
+```
 
-**Optional**: Enable instruction file management during first sync:
-- Automatically scans entire repo for `CLAUDE.md`, `AGENTS.md`, etc.
-- Centralizes them in `.easyskillz/docs/`
-- Replaces with symlinks when possible, otherwise copies real content
-- Choose `unified` (one source for all tools) or `tool-specific` (separate per tool)
-- Fully automated after initial choice
+The preview covers legacy IDs, generated artifacts, instruction ownership, and unsafe ignore rules. Unsupported legacy host intent is diagnosed instead of being silently mapped to another product, and legacy outputs remain untouched until an explicit reviewed migration. Apply backs up recoverable originals and rolls back source/config/instruction changes if the declared migration cannot finish.
 
-Your AI agents will use the CLI to create skills and manage instruction files. The loop closes.
+## Safety model
 
----
+- All paths are contained inside the workspace after resolving existing parent links.
+- Generated writes stage beside their destination and replace atomically where supported.
+- Ownership state commits last.
+- Links are removed only when their identity matches recorded state.
+- Copies are removed only when their current hash matches recorded output.
+- Missing or invalid state never grants deletion authority.
+- Shared outputs are one physical artifact with a consumer set.
+- `--force` is not an ownership bypass.
 
 ## Contributing
 
-📖 **[Developer Wiki](docs/wiki/Home.md)**: Guidelines on contributing, understanding the codebase, and creating issues.
+Use Node.js 22+ and run the public contract before proposing changes:
 
-Adding a new tool is a one-PR contribution:
+```bash
+npm ci
+npm test
+```
 
-1. Add an entry to [`src/registry.js`](src/registry.js)
-2. Add a detector file to [`src/detectors/`](src/detectors/)
+See [CONTRIBUTING.md](CONTRIBUTING.md), [DEVELOPMENT.md](DEVELOPMENT.md), and the [developer wiki](docs/wiki/Home.md).
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full template.
-
----
-
-## Collaboration Rules
-
-**Branching**
-- Branch from `main`
-- Name: `feat/<tool-name>`, `fix/<description>`, `docs/<description>`
-
-**Pull Requests**
-- One PR = one change. Adding a tool = one detector file + one registry entry, nothing more
-- PR title describes the change, not the task: `Add Cline detector` not `Working on new tool support`
-- All PRs require a passing smoke test: `node bin/easyskillz.js sync` in a temp project with your tool present
-
-**Commits**
-- Conventional commits: `feat:`, `fix:`, `docs:`, `chore:`
-- One logical change per commit
-
-**Code Style**
-- Plain CommonJS, zero runtime dependencies: keep it that way
-- Every operation must be idempotent
-- Every action must be visible to the user before it happens (glass box)
-- If it touches the filesystem, it needs an existence check first
-
-**What We Won't Merge**
-- Runtime dependencies (`chalk`, `commander`, `inquirer`, etc.)
-- Non-idempotent operations
-- Silent side effects
-- More than 3 questions to the user in any command
-
----
-
-## Why Not Just Use Symlinks Manually?
-
-You could. But then:
-
-- No shared config for teammates
-- No auto-detection of tools
-- No idempotent re-wire on clone
-- No instruction file updates
-- No generated copy fallback for restricted environments
-- No `easyskillz add` to wire new skills everywhere at once
-
-easyskillz is the missing glue.
-
----
-
-## Roadmap
-
-- **`easyskillz remove <name>`**: unwire and delete a skill from all tools
-- **`easyskillz list`**: show all skills and their wiring status per tool
-- **`easyskillz project doctor`**: quick health check, flags stale targets, pointer stubs, and missing outputs
-- **Skill templates**: `easyskillz add <name> --template <type>` for common patterns
-
----
-
-<div align="center">
-
-MIT License · [Contributing](CONTRIBUTING.md) · [Development](DEVELOPMENT.md) · [Issues](https://github.com/DurdeuVlad/easyskillz/issues)
-
-</div>
+MIT License.

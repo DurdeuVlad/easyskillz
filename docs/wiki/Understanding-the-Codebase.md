@@ -1,82 +1,38 @@
-# Understanding the Codebase
+# Understanding the codebase — 0.5.0
 
-This guide explains the architecture of `easyskillz` and how its components interact. It is designed to help maintainers and developers navigate the codebase and modify its behavior.
-
----
-
-## 🏛️ System Architecture
-
-`easyskillz` is built around a unidirectional synchronization pipeline. 
-
-### Synchronization Lifecycle
-When a user runs `easyskillz project sync`, the command executes the following phases sequentially:
-
-```mermaid
-sequenceDiagram
-    participant CLI as bin/easyskillz.js
-    participant Sync as src/commands/project/SyncCommand.js
-    participant Detect as src/init/detect.js
-    participant Plan as src/init/plan.js
-    participant Exec as src/init/execute.js
-    participant Wirer as src/wirer.js
-
-    CLI->>Sync: executes
-    Sync->>Detect: scans project environment & probes symlinks
-    Detect-->>Sync: returns detected tools and state
-    Sync->>Plan: scans unwired skills & builds action list
-    Plan-->>Sync: returns proposed actions
-    Sync->>Exec: applies the plan
-    Exec->>Wirer: wires stubs/adapters & updates config
-    Wirer-->>Exec: files written / symlinks created
-    Exec-->>Sync: sync complete
-```
-
----
-
-## 📁 Codebase Directory Structure
+Easyskillz runs on Node.js 22+ and exposes a CLI-only public API.
 
 ```text
-bin/
-  easyskillz.js       # CLI entry point; handles domain and argument parsing.
-src/
-  commands/           # Command handlers grouped by domain:
-    project/          #   - SyncCommand, DoctorCommand
-    skill/            #   - AddCommand, RemoveCommand, ActivateCommand, ListCommand
-    tool/             #   - RegisterCommand, UnregisterCommand, ListCommand
-    docs/             #   - SyncCommand, ListCommand
-  core/
-    BaseCommand.js    # Base class for all CLI commands. Sets up standard JSON/interactive outputs.
-  detectors/          # Directory check routines. One file per tool (e.g. claude.js, cursor.js).
-  docs/               # Module for centralizing custom instructions/docs (syncFolder.js, centralizeFiles.js).
-  gitignore/          # Helper modules to manage and update `.gitignore` files.
-  init/               # Core synchronization scripts (detect.js, plan.js, execute.js).
-  registry.js         # The directory of all supported tools and their standard wiring paths.
-  wirer.js            # The wiring engine. Evaluates states, creates symlinks, and generates adapters.
-tests/                # Test suites using Node's native test runner (unit, detectors, E2E).
+bin/easyskillz.js
+  └─ src/cli/                 grammar, parsing, dispatch, output
+      └─ domains              normalized command operations
+          ├─ config/          schema-2 and legacy schema-1 readers
+          ├─ skill-document/  byte-preserving YAML interpretation
+          ├─ registry + detectors
+          ├─ operations/      deterministic plans and transactional apply
+          ├─ outputs/         complete native materialization
+          ├─ docs/            explicit source-to-target ownership
+          ├─ fs/              containment, hashes, staging, replacement
+          └─ state            local artifact identity and consumers
 ```
 
----
+## Data flow
 
-## 🔗 The Wiring Engine (`src/wirer.js`)
+1. Parse and validate the entire invocation.
+2. Read desired config, canonical skills, host evidence, and local state.
+3. Build an immutable physical-artifact plan; deduplicate shared consumers and reject collisions.
+4. Return the preview or request one confirmation.
+5. Apply staged writes and validated cleanup.
+6. Commit local ownership state last.
 
-The core utility responsible for linking central skill files into tool-specific folders is `wirer.js`. It utilizes three distinct wiring strategies depending on what each AI tool supports:
+Doctor stops after inspection. Migration and document ownership add backup/restore behavior around the same apply boundary.
 
-### 1. Symlink Strategy
-*   **Target Tools**: Claude Code (`.claude/skills/`).
-*   **Mechanism**: Creates directory symlinks from `.easyskillz/skills/<skill-name>` directly to the tool's target folder. Extremely fast and keeps files synchronized live.
+## Storage
 
-### 2. Flat File / Stub Strategy
-*   **Target Tools**: Cursor (`.cursorrules` or `.cursor/rules/*.mdc`), Windsurf (`.windsurf/workflows/`).
-*   **Mechanism**: Writes a single text file (or workflow file) at the destination. For tools that do not support directory structures, we write a flat stub referencing the main instructions.
+- `.easyskillz/skills/<name>/`: committed, complete canonical source.
+- `.easyskillz/easyskillz.json`: committed schema-2 desired state.
+- `.easyskillz/state.json`: ignored actual state; never reconstructed as deletion authority.
+- Native targets: links or full copies.
+- Shared native targets: one deterministic artifact with a complete consumer set.
 
-### 3. Directory Adapter Strategy
-*   **Target Tools**: Devin (`.devin/skills/`), Codex (`.agents/skills/`), Gemini/Antigravity (`.gemini/skills/`).
-*   **Mechanism**: Instead of creating directory symlinks (which can cause issues with Git or environment sync), this strategy creates a **real physical directory** at the destination containing a lightweight `SKILL.md` file (an adapter) pointing back to the central skill file:
-    ```markdown
-    ---
-    name: skill-name
-    description: brief-description
-    ---
-    <!-- easyskillz-generated -->
-    Read the full skill instructions from: `.easyskillz/skills/skill-name/SKILL.md`
-    ```
+The legacy `sync`, `doctor`, and `add` aliases are parser concerns only. Runtime components receive canonical command identities.

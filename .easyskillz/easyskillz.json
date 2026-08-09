@@ -1,13 +1,16 @@
 {
+  "schemaVersion": 2,
   "tools": [
+    "antigravity",
     "claude",
     "codex",
     "cursor",
-    "gemini",
-    "windsurf"
+    "devin",
+    "gemini-cli",
+    "copilot"
   ],
-  "linkStrategy": "symlink",
-  "manageDocs": true,
-  "docsStrategy": "unified",
-  "gitignoreStrategy": "full"
+  "materialization": "auto",
+  "instructions": {
+    "mappings": []
+  }
 }

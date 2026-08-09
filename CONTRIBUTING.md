@@ -1,92 +1,41 @@
-# Contributing
+# Contributing to Easyskillz
 
-## North Star Principles
-
-Every feature and fix must satisfy all five.
-
-1. **Centralise** — one source of truth. Skills live in `.easyskillz/skills/`. Tool-specific dirs are outputs, never inputs.
-2. **Never force the user** — no operation is mandatory. Every write is opt-in or idempotent. Never overwrite user-owned content.
-3. **Sync is the entry point** — `easyskillz sync` is the one command users remember. It handles everything on first run and is safe to re-run at any time.
-4. **Respect user decisions** — if the user edited something outside a managed block, preserve it. Only delete/overwrite files easyskillz created.
-5. **Automation** — agents run easyskillz on behalf of users. Users should be able to forget easyskillz exists.
-
-## Adding a New Tool
-
-One PR = one new detector file + one registry entry.
-
-### Step 1 — Add to registry
-
-Edit [`src/registry.js`](src/registry.js) and add your tool:
-
-```js
-mytool: {
-  id: 'mytool',
-  name: 'My Tool',
-  skillsDir: '.mytool/skills',
-  instructionFile: '.mytool/instructions.md', // file easyskillz appends the hint line to
-  detectionMarkers: ['.mytool'],               // tool-specific path(s) used ONLY for detection
-},
-```
-
-`detectionMarkers` must be paths that are **unique to this tool** — never a file shared with other tools (e.g. `AGENTS.md` is shared by Codex, Cursor, and Windsurf and must not be used as a detection marker).
-
-### Step 2 — Create a detector
-
-Create `src/detectors/mytool.js`:
-
-```js
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
-const registry = require('../registry');
-
-module.exports = function detect(cwd) {
-  const entry = registry.mytool;
-  const found =
-    fs.existsSync(path.join(cwd, entry.skillsDir)) ||
-    entry.detectionMarkers.some((marker) => fs.existsSync(path.join(cwd, marker)));
-  return { id: entry.id, found, entry };
-};
-```
-
-### Step 3 — Wire the detector into init
-
-Add your detector to the `DETECTORS` map in [`src/init/detect.js`](src/init/detect.js):
-
-```js
-const DETECTORS = {
-  // ...existing entries...
-  mytool: require('../detectors/mytool'),
-};
-```
-
-File: `src/init/detect.js`
-
-That's it. Open a PR.
-
-## Code Style
-
-- Plain CommonJS, no build step, zero runtime dependencies (`fs`, `path`, `os`, `readline` only)
-- Every operation must be idempotent — check before acting
-- Glass box — print what you're doing before doing it, one confirmation at the end
-- Max 3 questions to the user in any command, ever
-
-## What We Won't Merge
-
-- Runtime dependencies (`chalk`, `commander`, `inquirer`, etc.)
-- Non-idempotent operations
-- Silent side effects (filesystem writes with no output)
-- New commands without `--json` support and proper exit codes
-
-## Smoke Test
-
-Before opening a PR, verify your detector works end-to-end:
+Easyskillz 0.5.0 targets Node.js 22+. Install exactly what the lockfile declares:
 
 ```bash
-mkdir /tmp/test-tool && cd /tmp/test-tool
-# create the marker file your detector looks for
-touch <your-tool-marker>
-node /path/to/easyskillz/bin/easyskillz.js sync
-# your tool should appear in the detected list
+npm ci
+npm test
 ```
+
+## Start with the public contract
+
+The CLI-only public API is `easyskillz <domain> <action>`. Add or change grammar in the declared command schema, then cover exact stdout, stderr, JSON, exit codes, aliases, help, and no-write behavior through the executable.
+
+## Core rules
+
+1. Write the failing test first and preserve real red/green evidence.
+2. Keep canonical skills byte-for-byte unchanged in read-only paths.
+3. Route all writes through validate → plan → apply → state.
+4. Treat `.easyskillz/easyskillz.json` as committed desired state and `.easyskillz/state.json` as ignored local ownership state.
+5. Never delete without proven ownership, zero consumers, and matching current identity.
+6. Never make instruction files an implicit `project sync` side effect.
+7. Preserve unknown vendor frontmatter and every resource in native delivery.
+8. Keep support claims at `conformant` until a dated activation record names the host version.
+
+## Adding or changing a surface
+
+- Update the registry contract and normalized detector evidence.
+- Identify and cite the native directory discovered by the host.
+- Add documentation provenance and artifact tests.
+- Cover shared targets, collisions, drift, cleanup, and platform-specific link behavior.
+- Do not equate a shared directory name with a separate product identity.
+
+## Pull requests
+
+- One coherent change with tests and updated documentation.
+- Conventional commit subjects are welcome but not required by the runtime.
+- Run unit, contract, integration, E2E, audit, package, and coverage gates relevant to the change.
+- Do not commit local state, backup payloads, staging directories, tarballs, or credentials.
+- Publishing and distribution-tag changes require separate maintainer authorization.
+
+The deprecated `sync`, `doctor`, and `add` aliases exist through 0.5.x only. New examples must use canonical commands; removal is no earlier than 0.6.0.

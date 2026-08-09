@@ -2,24 +2,19 @@
 
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
 const { execSync } = require('child_process');
-
-const BIN = path.resolve(__dirname, '../../bin/easyskillz.js');
+const { makeFixture, cleanupFixture } = require('../support/fixture');
+const { runCli } = require('../support/cli');
 
 /**
  * Create a unique temporary directory and initialize a git repo.
  */
 function setupRepo() {
-  const tmpBase = path.join(os.tmpdir(), 'easyskillz-e2e-');
-  const repoPath = fs.mkdtempSync(tmpBase);
+  const repoPath = makeFixture({
+    'package.json': `${JSON.stringify({ name: 'e2e-test', version: '1.0.0' }, null, 2)}\n`,
+  });
   
   execSync('git init', { cwd: repoPath, stdio: 'ignore' });
-  fs.writeFileSync(path.join(repoPath, 'package.json'), JSON.stringify({
-    name: 'e2e-test',
-    version: '1.0.0'
-  }, null, 2));
-  
   return repoPath;
 }
 
@@ -52,16 +47,16 @@ function mockTool(repoPath, toolId) {
  * Run easyskillz CLI in a specific directory.
  */
 function runEZ(args, cwd, env = {}) {
-  try {
-    const output = execSync(`node "${BIN}" ${args}`, { 
-      cwd, 
-      encoding: 'utf8',
-      env: { ...process.env, ...env }
-    });
-    return { ok: true, output };
-  } catch (e) {
-    return { ok: false, output: e.stdout + e.stderr, status: e.status };
-  }
+  const tokens = Array.isArray(args) ? args : String(args).trim().split(/\s+/).filter(Boolean);
+  const result = runCli(tokens, { cwd, env });
+  return {
+    ok: result.status === 0,
+    output: result.stdout,
+    stdout: result.stdout,
+    stderr: result.stderr,
+    status: result.status,
+    error: result.error,
+  };
 }
 
 /**
@@ -69,7 +64,7 @@ function runEZ(args, cwd, env = {}) {
  */
 function cleanup(repoPath) {
   if (repoPath && fs.existsSync(repoPath)) {
-    fs.rmSync(repoPath, { recursive: true, force: true });
+    cleanupFixture(repoPath);
   }
 }
 
