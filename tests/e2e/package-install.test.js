@@ -19,7 +19,7 @@ test('AC-25/AC-26/AC-30: CI matrix and package gate validate the published runti
   const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
   const ci = fs.readFileSync(path.join(ROOT, '.github', 'workflows', 'ci.yml'), 'utf8');
 
-  assert.equal(packageJson.version, '0.5.0');
+  assert.equal(packageJson.version, '0.5.1');
   assert.equal(packageJson.engines.node, '>=22.0.0');
   assert.equal(packageJson.scripts['test:package'], 'node scripts/test-package.js');
   assert.equal(packageJson.scripts['test:coverage'], 'node --test --experimental-test-coverage --test-coverage-lines=90 --test-coverage-functions=90 --test-coverage-branches=85 tests/unit/*.test.js tests/contract/*.test.js tests/integration/*.test.js tests/e2e/*.test.js');

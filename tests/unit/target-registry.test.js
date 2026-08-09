@@ -62,9 +62,9 @@ test('verified tier requires dated host-version activation evidence', () => {
   assert.doesNotThrow(() => registry.validateSurface({ id: 'x', tier: 'verified', activation: { date: '2026-08-08', version: '1.2.3' } }));
 });
 
-test('AC-10/27: every detector returns normalized evidence for each exact declared marker', (t) => {
+test('AC-10/27: every detector returns normalized evidence for each exact declared marker', async (t) => {
   for (const [id, detector] of Object.entries(DETECTORS)) {
-    t.test(id, () => {
+    await t.test(id, () => {
       const cwd = workspace();
       try {
         assert.deepEqual(detector(cwd), { found: false, evidence: [] });

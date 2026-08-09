@@ -2,6 +2,7 @@ node_modules/
 *.log
 .DS_Store
 Thumbs.db
+/.claude/settings.json
 
 # Local QA/package artifacts
 .qa-temp/

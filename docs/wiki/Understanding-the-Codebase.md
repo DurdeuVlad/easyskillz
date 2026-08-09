@@ -1,4 +1,4 @@
-# Understanding the codebase — 0.5.0
+# Understanding the codebase — 0.5.1
 
 Easyskillz runs on Node.js 22+ and exposes a CLI-only public API.
 

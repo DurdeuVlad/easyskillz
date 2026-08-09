@@ -1,6 +1,6 @@
 # Development
 
-Easyskillz 0.5.0 requires Node.js 22+ and remains CommonJS. The only runtime dependency is `yaml` 2.x; `node-pty` is development-only for PTY/ConPTY contract coverage.
+Easyskillz 0.5.1 requires Node.js 22+ and remains CommonJS. The only runtime dependency is `yaml` 2.x; `node-pty` is development-only for PTY/ConPTY contract coverage.
 
 ## Setup
 

@@ -2,7 +2,7 @@
 
 const { DOMAINS, ALIASES } = require('../cli/schema');
 
-const VERSION = '0.5.0';
+const VERSION = '0.5.1';
 const MINIMUM_NODE = 22;
 
 const SURFACES = Object.freeze([
@@ -54,9 +54,9 @@ function renderReferenceSkill() {
   return [
     '---',
     'name: easyskillz-reference',
-    'description: Use when managing project skills, agent targets, migrations, or owned instruction files with Easyskillz 0.5.0.',
+    'description: Use when managing project skills, agent targets, migrations, or owned instruction files with Easyskillz 0.5.1.',
     '---',
-    '# Easyskillz 0.5.0 reference',
+    '# Easyskillz 0.5.1 reference',
     '',
     'Easyskillz keeps canonical skills in `.easyskillz/skills/<name>/` and materializes complete native directories for configured agent surfaces.',
     '',
@@ -92,7 +92,7 @@ function renderReferenceSkill() {
 function renderInstructionSource() {
   return [
     '<!-- easyskillz-managed -->',
-    '## Easyskillz 0.5.0',
+    '## Easyskillz 0.5.1',
     '',
     'Canonical skills live in `.easyskillz/skills/<name>/`. Use the CLI; do not edit generated agent targets.',
     '',

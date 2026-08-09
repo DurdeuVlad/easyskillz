@@ -1,6 +1,6 @@
 # Easyskillz developer wiki
 
-Easyskillz 0.5.0 is a preview-first skill distribution CLI for Node.js 22+.
+Easyskillz 0.5.1 is a preview-first skill distribution CLI for Node.js 22+.
 
 - [Understand the codebase](Understanding-the-Codebase.md)
 - [Contribute safely](How-to-Contribute.md)

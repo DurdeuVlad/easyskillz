@@ -64,7 +64,7 @@ test('every generated example executes against the public binary', () => {
 });
 
 test('AC-28: release documentation states the stable runtime and compatibility policy', () => {
-  assert.equal(VERSION, '0.5.0');
+  assert.equal(VERSION, '0.5.1');
   assert.equal(MINIMUM_NODE, 22);
 
   const readme = read('README.md');
@@ -74,7 +74,7 @@ test('AC-28: release documentation states the stable runtime and compatibility p
   const install = read('INSTALL-SKILL.md');
 
   for (const [name, content] of Object.entries({ readme, changelog, development, contributing, install })) {
-    assert.match(content, /0\.5\.0/, name);
+    assert.match(content, /0\.5\.1/, name);
     assert.match(content, /Node(?:\.js)? 22\+/, name);
   }
   assert.match(readme, /CLI-only public API/i);
@@ -115,7 +115,7 @@ test('architecture and wiki docs describe plan/apply/state rather than legacy wi
   ];
   for (const file of files) {
     const content = read(file);
-    assert.match(content, /0\.5\.0/, file);
+    assert.match(content, /0\.5\.1/, file);
     assert.doesNotMatch(content, /\.codex\/skills/, file);
     assert.doesNotMatch(content, /pointer-only/i, file);
   }

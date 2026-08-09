@@ -1,6 +1,6 @@
 # easyskillz
 
-Easyskillz 0.5.0 keeps reusable agent skills honest across tools. You author one complete skill directory under `.easyskillz/skills/`; Easyskillz validates it, plans target changes, and materializes the complete native directory each host discovers.
+Easyskillz 0.5.1 keeps reusable agent skills honest across tools. You author one complete skill directory under `.easyskillz/skills/`; Easyskillz validates it, plans target changes, and materializes the complete native directory each host discovers.
 
 Requires Node.js 22+.
 
@@ -17,7 +17,7 @@ The executable is the CLI-only public API. Requiring internal JavaScript modules
 ## Install
 
 ```bash
-npm install --global easyskillz@0.5.0
+npm install --global easyskillz@0.5.1
 easyskillz --version
 ```
 

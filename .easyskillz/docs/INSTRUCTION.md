@@ -1,5 +1,5 @@
 <!-- easyskillz-managed -->
-## Easyskillz 0.5.0
+## Easyskillz 0.5.1
 
 Canonical skills live in `.easyskillz/skills/<name>/`. Use the CLI; do not edit generated agent targets.
 

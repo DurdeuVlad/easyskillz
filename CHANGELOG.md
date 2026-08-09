@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1 — 2026-08-09
+
+- Fixed Node.js 22 nested-test completion in the host detector contract.
+- Restored CI coverage for the repository's `master` branch.
+- Made npm publish dry-runs execute the installed-package gate instead of inheriting nested dry-run state.
+
 ## 0.5.0 — 2026-08-09
 
 Requires Node.js 22+.

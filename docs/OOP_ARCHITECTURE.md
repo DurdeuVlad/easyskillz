@@ -1,4 +1,4 @@
-# Runtime architecture — 0.5.0
+# Runtime architecture — 0.5.1
 
 The old command-class pipeline has been replaced by explicit data boundaries. The design is intentionally boring: validate, plan, apply, then commit state.
 

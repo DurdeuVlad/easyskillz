@@ -1,4 +1,4 @@
-# How to contribute — 0.5.0
+# How to contribute — 0.5.1
 
 Use Node.js 22+ and install from the lockfile:
 

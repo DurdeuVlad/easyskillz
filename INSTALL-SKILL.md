@@ -1,9 +1,9 @@
-# Install and use Easyskillz 0.5.0
+# Install and use Easyskillz 0.5.1
 
 Requires Node.js 22+.
 
 ```bash
-npm install --global easyskillz@0.5.0
+npm install --global easyskillz@0.5.1
 easyskillz --version
 ```
 

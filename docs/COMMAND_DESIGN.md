@@ -1,6 +1,6 @@
-# Command design — 0.5.0
+# Command design — 0.5.1
 
-Easyskillz 0.5.0 uses one declared grammar before dispatch:
+Easyskillz 0.5.1 uses one declared grammar before dispatch:
 
 ```text
 easyskillz [--help|-h] [--version] [--json]

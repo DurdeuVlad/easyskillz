@@ -1,6 +1,6 @@
 # Contributing to Easyskillz
 
-Easyskillz 0.5.0 targets Node.js 22+. Install exactly what the lockfile declares:
+Easyskillz 0.5.1 targets Node.js 22+. Install exactly what the lockfile declares:
 
 ```bash
 npm ci

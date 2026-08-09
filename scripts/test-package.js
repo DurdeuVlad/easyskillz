@@ -21,8 +21,13 @@ function run(command, args, options = {}) {
 }
 
 function runNpm(args, options) {
-  if (fs.existsSync(npmCli)) return run(process.execPath, [npmCli, ...args], options);
-  return run(process.platform === 'win32' ? 'npm.cmd' : 'npm', args, { shell: process.platform === 'win32', ...options });
+  const env = { ...process.env, ...(options?.env || {}) };
+  for (const key of Object.keys(env)) {
+    if (key.toLowerCase().replaceAll('-', '_') === 'npm_config_dry_run') delete env[key];
+  }
+  const cleanOptions = { ...options, env };
+  if (fs.existsSync(npmCli)) return run(process.execPath, [npmCli, ...args], cleanOptions);
+  return run(process.platform === 'win32' ? 'npm.cmd' : 'npm', args, { shell: process.platform === 'win32', ...cleanOptions });
 }
 
 function assertPackedFiles(files) {
