@@ -38,6 +38,9 @@ jobs:
       - run: npm ci
       - run: npm run ci
 
+      - name: Upgrade npm for trusted publishing (OIDC)
+        run: npm install -g npm@latest
+
       - name: Check for a version bump
         id: version
         run: |
@@ -57,8 +60,6 @@ jobs:
       - name: Publish to npm
         if: steps.version.outputs.changed == 'true'
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Extract changelog section
         if: steps.version.outputs.changed == 'true'
