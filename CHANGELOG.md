@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.2 — 2026-08-10
+
+- Added CODE_OF_CONDUCT, SECURITY policy, issue templates, and a PR template.
+- Switched npm publishing to Trusted Publishing (OIDC); CI now publishes automatically on a version bump to `master`, with no stored npm token.
+- Fixed the release-metadata test hardcoding an exact package version, which would have broken on this very release.
+- Fixed the package gate's nested `npm pack`/`npm install` calls leaking outer npm publish state (config and OIDC env vars) and only handling one shape of `npm pack --json` output.
+
 ## 0.5.1 — 2026-08-09
 
 - Fixed Node.js 22 nested-test completion in the host detector contract.
