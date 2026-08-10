@@ -23,7 +23,12 @@ function run(command, args, options = {}) {
 function runNpm(args, options) {
   const env = { ...process.env, ...(options?.env || {}) };
   for (const key of Object.keys(env)) {
-    if (key.toLowerCase().replaceAll('-', '_') === 'npm_config_dry_run') delete env[key];
+    // Isolate this script's nested npm calls from whatever lifecycle invoked
+    // it (publish, provenance, OIDC token exchange, an outer dry-run, ...).
+    // This script tests the packed artifact itself; it must not inherit any
+    // publish-time state from a parent npm process.
+    const normalized = key.toLowerCase().replaceAll('-', '_');
+    if (normalized.startsWith('npm_config_') || normalized.startsWith('actions_id_token_')) delete env[key];
   }
   const cleanOptions = { ...options, env };
   if (fs.existsSync(npmCli)) return run(process.execPath, [npmCli, ...args], cleanOptions);
