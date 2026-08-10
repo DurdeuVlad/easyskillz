@@ -1,5 +1,7 @@
 # easyskillz
 
+> **Status:** easyskillz solved cross-tool skill wiring by fully materializing skills into every host's native directory. As libraries grew, that approach started advertising more to the model than any single task needs. [Skillweft](https://github.com/DurdeuVlad/skillweft) is the successor: same author, a progressive-disclosure direction — skills stay hidden in a library until a router searches and opens exactly the one a task needs. easyskillz still works and is maintained for existing users, but new projects should start with Skillweft.
+
 Easyskillz 0.5.1 keeps reusable agent skills honest across tools. You author one complete skill directory under `.easyskillz/skills/`; Easyskillz validates it, plans target changes, and materializes the complete native directory each host discovers.
 
 Requires Node.js 22+.
