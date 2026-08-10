@@ -143,7 +143,10 @@ async function main() {
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'easyskillz-package-'));
   try {
     const packed = runNpm(['pack', '--json', '--pack-destination', temporary]);
-    const [artifact] = JSON.parse(packed.stdout);
+    const parsedPack = JSON.parse(packed.stdout);
+    // npm pack --json has returned an array in older CLI versions and an
+    // object keyed by package name in newer ones. Accept either shape.
+    const artifact = Array.isArray(parsedPack) ? parsedPack[0] : Object.values(parsedPack)[0];
     if (!artifact || !artifact.filename || !Array.isArray(artifact.files)) throw new Error('npm pack did not return package metadata');
     assertPackedFiles(artifact.files);
 
