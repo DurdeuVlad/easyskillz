@@ -1,0 +1,26 @@
+name: Feature request
+description: Propose a bounded improvement to cross-tool skill management.
+title: "feature: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What skill-sync or host-support problem exists, and who experiences it?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe observable behavior without prescribing an implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Trust and boundary impact
+      description: Explain any filesystem, instruction-file, host-configuration, or credential impact.
+    validations:
+      required: true
